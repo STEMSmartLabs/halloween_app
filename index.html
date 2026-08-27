@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#07030c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Halloween Candy Brew - Interactive Magic Wand Progressive Web App">
+  <title>Halloween Candy Brew - Magic Wand</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./css/halloween.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ====================================================================
+       CABIN INTERIOR ENVIRONMENT: STONE WALLS, WOOD FLOOR & RAFTERS
+       ==================================================================== -->
+  <div class="cabin-environment">
+    <!-- Ceiling Timber Rafters -->
+    <div class="ceiling-rafters">
+      <div class="rafter-beam r1"></div>
+      <div class="rafter-beam r2"></div>
+      <div class="rafter-beam r3"></div>
+      <div class="rafter-beam r4"></div>
+      <div class="rafter-beam r5"></div>
+      <div class="rafter-beam r6"></div>
+      <div class="rafter-beam r7"></div>
+    </div>
+
+    <!-- Procedural Stone Masonry Wall -->
+    <div class="stone-wall-texture"></div>
+
+    <!-- Ambient Room Glow from Fire and Neons -->
+    <div class="ambient-room-light"></div>
+
+    <!-- Perspective Rustic Wooden Floor -->
+    <div class="wood-floor-planks">
+      <div class="floor-plank-joint j1"></div>
+      <div class="floor-plank-joint j2"></div>
+      <div class="floor-plank-joint j3"></div>
+      <div class="floor-plank-joint j4"></div>
+      <div class="floor-plank-joint j5"></div>
+    </div>
+  </div>
+
+  <!-- Particle, Wave Fluid & VFX Canvas (z-index: 25) -->
+  <canvas id="particle-canvas"></canvas>
+
+  <div id="app-container">
+
+    <!-- ====================================================================
+         1. TOP HEADER: 3D TITLE, GOTHIC MOON WINDOW & CANDY PAIL
+         ==================================================================== -->
+    <header class="top-nav">
+      <!-- Title: 3D Carved Halloween Fantasy Typography -->
+      <div class="brand-section">
+        <h1 class="brand-title-orange">HALLOWEEN</h1>
+        <h1 class="brand-title-green">CANDY BREW</h1>
+      </div>
+
+      <!-- Center: Gothic Attic Moon Window -->
+      <div class="attic-window-container">
+        <div class="gothic-window-frame">
+          <div class="window-glass">
+            <div class="moon-body">
+              <div class="moon-crater c1"></div>
+              <div class="moon-crater c2"></div>
+              <div class="moon-crater c3"></div>
+            </div>
+            <div class="night-clouds"></div>
+            <div class="window-mullion-v"></div>
+            <div class="window-mullion-h"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Trick-Or-Treat Candy Pail Tracker -->
+      <div class="candy-pail-card">
+        <div class="candy-pail-title">TRICK-OR-TREAT CANDY PAIL</div>
+        <div class="candy-pail-bar-row">
+          <!-- Jack-o'-Lantern Bucket Icon -->
+          <div class="pail-pumpkin-icon">
+            <svg viewBox="0 0 100 90" width="52" height="46">
+              <defs>
+                <radialGradient id="pumpkin-grad" cx="40%" cy="35%" r="65%">
+                  <stop offset="0%" stop-color="#ffb703"/>
+                  <stop offset="50%" stop-color="#fb8500"/>
+                  <stop offset="90%" stop-color="#d90429"/>
+                  <stop offset="100%" stop-color="#590d22"/>
+                </radialGradient>
+              </defs>
+              <ellipse cx="50" cy="54" rx="42" ry="32" fill="url(#pumpkin-grad)"/>
+              <path d="M 50 22 Q 54 8 60 10 Q 56 22 52 26 Z" fill="#2d6a4f"/>
+              <!-- Carved Glowing Face -->
+              <polygon points="32,44 42,44 37,35" fill="#ffe066" filter="drop-shadow(0 0 5px #ffb703)"/>
+              <polygon points="58,44 68,44 63,35" fill="#ffe066" filter="drop-shadow(0 0 5px #ffb703)"/>
+              <polygon points="50,48 54,55 46,55" fill="#ffe066" filter="drop-shadow(0 0 5px #ffb703)"/>
+              <path d="M 28 60 Q 50 76 72 60 Q 66 70 50 72 Q 34 70 28 60 Z" fill="#ffe066" filter="drop-shadow(0 0 8px #ffb703)"/>
+              <!-- Candies in Bucket Top -->
+              <circle cx="32" cy="28" r="7" fill="#f72585"/>
+              <circle cx="48" cy="25" r="8" fill="#4cc9f0"/>
+              <circle cx="64" cy="28" r="7" fill="#ffb703"/>
+            </svg>
+          </div>
+
+          <!-- Glossy Progress Bar with Floating Candy Sprites -->
+          <div class="candy-bar-track">
+            <div class="candy-bar-fill" id="candy-progress-fill" style="width: 75%;">
+              <div class="candy-sprite-row">
+                <span class="candy-bit">🍬</span>
+                <span class="candy-bit">🍭</span>
+                <span class="candy-bit">🍬</span>
+              </div>
+            </div>
+            <div class="candy-bar-percent" id="candy-percent-text">75%</div>
+          </div>
+        </div>
+        <div class="candy-fraction-label" id="candy-fraction">75 / 100 Treats</div>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         2. MAIN STAGE: LEFT PANEL, INGREDIENTS, CAULDRON, APOTHECARY SHELF
+         ==================================================================== -->
+    <main class="main-stage">
+      
+      <!-- ================================================================
+           A. LEFT PANEL: GLOWING NEON SIGNS & BLUETOOTH WAND CARD
+           ================================================================ -->
+      <aside class="left-panel">
+        
+        <!-- SVG Luminous Glass Neon Signs: Spiderweb & Dangling Spider -->
+        <div class="neon-signs-stack">
+          <!-- 1. Neon Spiderweb (Glowing Amber Tubes) -->
+          <div class="neon-sign-box neon-spiderweb-sign">
+            <svg viewBox="0 0 120 120" width="95" height="95" class="neon-svg">
+              <defs>
+                <filter id="amber-neon-glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" result="blur1"/>
+                  <feGaussianBlur stdDeviation="8" result="blur2"/>
+                  <feMerge>
+                    <feMergeNode in="blur2"/>
+                    <feMergeNode in="blur1"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g stroke="#ffb703" stroke-width="3.2" fill="none" filter="url(#amber-neon-glow)" stroke-linecap="round">
+                <!-- Radial spokes -->
+                <line x1="60" y1="60" x2="60" y2="8"/>
+                <line x1="60" y1="60" x2="105" y2="22"/>
+                <line x1="60" y1="60" x2="112" y2="60"/>
+                <line x1="60" y1="60" x2="105" y2="98"/>
+                <line x1="60" y1="60" x2="60" y2="112"/>
+                <line x1="60" y1="60" x2="15" y2="98"/>
+                <line x1="60" y1="60" x2="8" y2="60"/>
+                <line x1="60" y1="60" x2="15" y2="22"/>
+                <!-- Spiral webs -->
+                <polygon points="60,20 95,32 100,60 95,88 60,100 25,88 20,60 25,32"/>
+                <polygon points="60,34 82,42 86,60 82,78 60,86 38,78 34,60 38,42"/>
+                <polygon points="60,46 72,50 74,60 72,70 60,74 48,70 46,60 48,50"/>
+                <!-- Central Spider -->
+                <circle cx="60" cy="60" r="5" fill="#ffb703"/>
+                <circle cx="60" cy="54" r="3.5" fill="#ffb703"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- 2. Neon Spider (Glowing Violet Tubes) -->
+          <div class="neon-sign-box neon-spider-sign">
+            <svg viewBox="0 0 100 130" width="75" height="95" class="neon-svg">
+              <defs>
+                <filter id="purple-neon-glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" result="pblur1"/>
+                  <feGaussianBlur stdDeviation="8" result="pblur2"/>
+                  <feMerge>
+                    <feMergeNode in="pblur2"/>
+                    <feMergeNode in="pblur1"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <line x1="50" y1="0" x2="50" y2="35" stroke="#c084fc" stroke-width="2" filter="url(#purple-neon-glow)"/>
+              <g stroke="#c084fc" stroke-width="3.2" fill="none" filter="url(#purple-neon-glow)" stroke-linecap="round">
+                <ellipse cx="50" cy="65" rx="11" ry="16" fill="rgba(192, 132, 252, 0.25)"/>
+                <circle cx="50" cy="45" r="7" fill="rgba(192, 132, 252, 0.25)"/>
+                <path d="M 44 52 Q 22 42 14 60 Q 10 75 16 85"/>
+                <path d="M 44 62 Q 20 58 16 78 Q 14 92 24 102"/>
+                <path d="M 44 70 Q 22 72 20 92 Q 22 108 34 116"/>
+                <path d="M 56 52 Q 78 42 86 60 Q 90 75 84 85"/>
+                <path d="M 56 62 Q 80 58 84 78 Q 86 92 76 102"/>
+                <path d="M 56 70 Q 78 72 80 92 Q 78 108 66 116"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 3. Bluetooth Wand Status Card -->
+        <div class="wand-status-widget disconnected" id="wand-status-widget" title="Click to Connect Bluetooth Magic Wand">
+          <div class="wand-status-header">BLUETOOTH<br>WAND STATUS</div>
+          
+          <div class="wand-illustration-box">
+            <!-- Illuminated Glowing Wand / Broomstick -->
+            <svg viewBox="0 0 100 100" width="75" height="75" class="wand-icon-svg">
+              <defs>
+                <filter id="wand-gold-glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" result="wblur"/>
+                  <feMerge>
+                    <feMergeNode in="wblur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g stroke="#ffb703" stroke-width="3.5" fill="none" filter="url(#wand-gold-glow)" stroke-linecap="round">
+                <path d="M 78 16 Q 64 42 48 58 Q 38 70 30 78" stroke="#fca311" stroke-width="5"/>
+                <path d="M 30 78 Q 20 85 14 90 Q 22 92 34 85 Z" fill="#ffb703"/>
+                <path d="M 28 75 Q 16 80 12 85" stroke="#ffe066" stroke-width="2.8"/>
+                <!-- Sparkle Stars -->
+                <polygon points="76,14 78,10 80,14 84,16 80,18 78,22 76,18 72,16" fill="#ffe066"/>
+                <polygon points="56,32 57,29 58,32 61,33 58,34 57,37 56,34 53,33" fill="#ffe066"/>
+                <polygon points="42,50 43,48 44,50 46,51 44,52 43,54 42,52 40,51" fill="#ffe066"/>
+              </g>
+            </svg>
+            <div class="wand-pulse-ring"></div>
+          </div>
+
+          <div class="wand-info-block">
+            <span class="wand-model-label">SPARKLE WAND:</span>
+            <span class="wand-conn-status" id="wand-status-text">CONNECTED (Active)</span>
+          </div>
+
+          <div class="wand-battery-gauge">
+            <div class="battery-pill-track">
+              <div class="battery-pill-fill" id="battery-level-fill" style="width: 85%;"></div>
+            </div>
+            <span class="battery-text" id="battery-percentage-text">85%</span>
+          </div>
+
+          <div class="wand-level-tag lvl-1" id="wand-level-badge">⭐ Lvl 1: Apprentice</div>
+          <button class="wand-train-btn" id="open-trainer-btn" title="Train & Test Wand Movements">🎓 Train Movements</button>
+        </div>
+
+      </aside>
+
+      <!-- ================================================================
+           B. CENTER-LEFT: INGREDIENTS TO ADD (HARVEST FRUITS & VEGGIES)
+           ================================================================ -->
+      <section class="ingredients-section">
+        <div class="section-title-neon">INGREDIENTS TO ADD:</div>
+
+        <div class="ingredients-matrix">
+          <!-- 1. Apple (Purple Glowing Aura) -->
+          <div class="ingredient-card" data-ingredient="apple" title="Toss Apple">
+            <div class="ing-badge badge-purple">
+              <span class="ing-emoji">🍎</span>
+            </div>
+            <span class="ing-count">x2</span>
+          </div>
+
+          <!-- 2. Grapes (Blue Glowing Aura) -->
+          <div class="ingredient-card" data-ingredient="grapes" title="Toss Grapes">
+            <div class="ing-badge badge-blue">
+              <span class="ing-emoji">🍇</span>
+            </div>
+            <span class="ing-count">x3</span>
+          </div>
+
+          <!-- 3. Candy Corn (Amber Glowing Aura) -->
+          <div class="ingredient-card" data-ingredient="candycorn" title="Toss Candy Corn">
+            <div class="ing-badge badge-orange">
+              <span class="ing-emoji">🌽</span>
+            </div>
+            <span class="ing-count">x5</span>
+          </div>
+
+          <!-- 4. Carrot (Green Glowing Aura) -->
+          <div class="ingredient-card" data-ingredient="carrot" title="Toss Carrot">
+            <div class="ing-badge badge-green">
+              <span class="ing-emoji">🥕</span>
+            </div>
+            <span class="ing-count">x1</span>
+          </div>
+
+          <!-- 5. Mini Pumpkin (Golden Orange Glowing Aura) -->
+          <div class="ingredient-card span-full" data-ingredient="pumpkin" title="Toss Mini Pumpkin">
+            <div class="ing-badge badge-pumpkin">
+              <span class="ing-emoji">🎃</span>
+            </div>
+            <span class="ing-count">x4</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           C. CENTER: NEON BAT, BUBBLING CAULDRON & STIR & BREW BUTTON
+           ================================================================ -->
+      <section class="center-cauldron-section">
+        
+        <!-- Top Instruction & Active Recipe HUD (Crystal Clear Above Cauldron) -->
+        <div class="top-instruction-hud" id="top-instruction-hud">
+          <div class="active-recipe-tag" id="active-recipe-title">🎃 Pumpkin Spice Choco-Elixir</div>
+          <div class="recipe-action-banner" id="recipe-action-banner">
+            <span class="action-tag">ACTION:</span>
+            <span class="action-instruction-text" id="action-instruction-text">🍎 Add 2 Apples</span>
+          </div>
+          <!-- Elevated Feedback Toast Notification Banner -->
+          <div class="spell-feedback-toast" id="spell-feedback">✨ Cast Ready!</div>
+        </div>
+
+        <!-- Glowing Neon Bat Silhouette Above Cauldron -->
+        <div class="neon-bat-banner">
+          <svg viewBox="0 0 160 80" width="140" height="70" class="neon-svg">
+            <defs>
+              <filter id="orange-neon-bat-glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="3.5" result="bblur1"/>
+                <feGaussianBlur stdDeviation="8" result="bblur2"/>
+                <feMerge>
+                  <feMergeNode in="bblur2"/>
+                  <feMergeNode in="bblur1"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <path d="M 80 34 Q 85 24 95 28 Q 115 12 145 20 Q 155 35 142 52 Q 120 50 110 62 Q 95 56 80 65 Q 65 56 50 62 Q 40 50 18 52 Q 5 35 15 20 Q 45 12 65 28 Q 75 24 80 34 Z"
+                  fill="rgba(255, 117, 24, 0.18)" stroke="#ff7518" stroke-width="3.2" filter="url(#orange-neon-bat-glow)" stroke-linejoin="round"/>
+            <circle cx="76" cy="36" r="2" fill="#ffe066"/>
+            <circle cx="84" cy="36" r="2" fill="#ffe066"/>
+          </svg>
+        </div>
+
+        <!-- High-Detail SVG Cast Iron Cauldron -->
+        <div class="cauldron-container">
+          <svg class="cauldron-svg" viewBox="0 0 460 380">
+            <defs>
+              <radialGradient id="cauldron-belly-grad" cx="45%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#3d2a4e"/>
+                <stop offset="35%" stop-color="#1f122c"/>
+                <stop offset="75%" stop-color="#0e0517"/>
+                <stop offset="100%" stop-color="#05010a"/>
+              </radialGradient>
+              <linearGradient id="cauldron-rim-metal" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#160c22"/>
+                <stop offset="25%" stop-color="#3f2756"/>
+                <stop offset="50%" stop-color="#5a387a"/>
+                <stop offset="75%" stop-color="#3f2756"/>
+                <stop offset="100%" stop-color="#160c22"/>
+              </linearGradient>
+              <radialGradient id="fire-glow-base" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ffbe0b" stop-opacity="1"/>
+                <stop offset="40%" stop-color="#fb5607" stop-opacity="0.8"/>
+                <stop offset="75%" stop-color="#ff006e" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+              </radialGradient>
+              <!-- Glowing Green Potion Base in SVG -->
+              <radialGradient id="svg-potion-fill" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#bbf7d0"/>
+                <stop offset="30%" stop-color="#4ade80"/>
+                <stop offset="70%" stop-color="#16a34a"/>
+                <stop offset="100%" stop-color="#052e16"/>
+              </radialGradient>
+            </defs>
+
+            <!-- Fire & Glowing Charcoal Embers Underneath -->
+            <ellipse cx="230" cy="345" rx="140" ry="25" fill="url(#fire-glow-base)" filter="blur(8px)"/>
+            <ellipse cx="230" cy="340" rx="95" ry="14" fill="#ffbe0b" filter="blur(4px)" opacity="0.85"/>
+
+            <!-- Heavy Cast-Iron Feet -->
+            <path d="M 115 250 L 80 350 L 110 350 L 140 268 Z" fill="#10061a"/>
+            <path d="M 345 250 L 380 350 L 350 350 L 320 268 Z" fill="#10061a"/>
+            <path d="M 230 280 L 230 355 L 246 355 L 242 280 Z" fill="#09030e"/>
+
+            <!-- Main Cauldron Belly -->
+            <ellipse cx="230" cy="215" rx="180" ry="105" fill="url(#cauldron-belly-grad)"/>
+            <path d="M 76 145 Q 230 85 384 145 Q 425 245 230 315 Q 35 245 76 145 Z" fill="url(#cauldron-belly-grad)"/>
+
+            <!-- Cast Iron Ring Handles -->
+            <circle cx="58" cy="170" r="22" fill="none" stroke="#2c1a3c" stroke-width="9"/>
+            <circle cx="402" cy="170" r="22" fill="none" stroke="#2c1a3c" stroke-width="9"/>
+            <path d="M 68 160 Q 82 165 78 180" stroke="#4a2e64" stroke-width="4" fill="none"/>
+            <path d="M 392 160 Q 378 165 382 180" stroke="#4a2e64" stroke-width="4" fill="none"/>
+
+            <!-- Cauldron Outer Rim & Lip -->
+            <ellipse cx="230" cy="142" rx="158" ry="38" fill="url(#cauldron-rim-metal)" stroke="#52326e" stroke-width="6"/>
+            <!-- Glowing Potion Cavity in SVG Lip -->
+            <ellipse cx="230" cy="142" rx="142" ry="30" fill="url(#svg-potion-fill)" filter="drop-shadow(0 0 15px #4ade80)"/>
+            <!-- Bubbles in SVG Potion -->
+            <circle cx="180" cy="140" r="8" fill="#c084fc" opacity="0.8"/>
+            <circle cx="260" cy="138" r="10" fill="#a855f7" opacity="0.8"/>
+            <circle cx="220" cy="146" r="6" fill="#facc15" opacity="0.9"/>
+          </svg>
+        </div>
+
+        <!-- Glowing Neon "STIR & BREW" Action Button -->
+        <div class="cauldron-action-bar">
+          <button class="neon-action-btn" id="stir-action-btn">
+            <span class="neon-btn-text">STIR & BREW</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           D. RIGHT PANEL: APOTHECARY WOODEN SHELF & BREW STATUS
+           ================================================================ -->
+      <aside class="right-panel">
+        
+        <div class="shelf-and-ghost-wrapper">
+          <!-- Realistic 2-Tier Wooden Apothecary Shelf -->
+          <div class="apothecary-shelf-unit">
+            <!-- Top Shelf Plank -->
+            <div class="shelf-tier tier-top">
+              <div class="jars-row">
+                <!-- Jar 1: Spider Eggs with Green Glow -->
+                <div class="apothecary-jar jar-spider-eggs" title="Spider Eggs">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass">
+                    <div class="jar-label">SPIDER<br>EGGS</div>
+                    <div class="jar-glow-content eggs-green">🥚🥚</div>
+                  </div>
+                </div>
+
+                <!-- Jar 2: Glowing Green Specimens -->
+                <div class="apothecary-jar jar-specimens" title="Glowing Slime Spheres">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass">
+                    <div class="jar-glow-content balls-green">🟢🟢</div>
+                  </div>
+                </div>
+
+                <!-- Jar 3: Red Elixir Potion -->
+                <div class="apothecary-jar jar-red-potion" title="Crimson Elixir">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass potion-flask-red">
+                    <div class="potion-liquid-red"></div>
+                  </div>
+                </div>
+
+                <!-- Jar 4: Bones Jar -->
+                <div class="apothecary-jar jar-bones" title="Preserved Bones">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass">
+                    <div class="jar-glow-content">🦴🦴</div>
+                  </div>
+                </div>
+              </div>
+              <div class="wood-shelf-plank"></div>
+            </div>
+
+            <!-- Bottom Shelf Plank -->
+            <div class="shelf-tier tier-bottom">
+              <div class="jars-row">
+                <!-- Jar 5: Green Spider Eggs -->
+                <div class="apothecary-jar jar-spider-eggs" title="Spider Eggs">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass">
+                    <div class="jar-label">SPIDER<br>EGGS</div>
+                    <div class="jar-glow-content eggs-green">🥚🥚</div>
+                  </div>
+                </div>
+
+                <!-- Jar 6: Swirling Purple Flask -->
+                <div class="apothecary-jar jar-purple-flask" title="Mystic Purple Potion">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass round-flask-purple">
+                    <div class="potion-liquid-purple"></div>
+                  </div>
+                </div>
+
+                <!-- Jar 7: Crossed Bones -->
+                <div class="apothecary-jar jar-bones" title="Dry Bones">
+                  <div class="jar-cork"></div>
+                  <div class="jar-glass">
+                    <div class="jar-glow-content">🦴🦴</div>
+                  </div>
+                </div>
+
+                <!-- Jar 8: Glowing Skull Lantern -->
+                <div class="apothecary-jar jar-skull-lantern" title="Candlelit Skull Lantern">
+                  <div class="skull-lantern-body">
+                    <span class="skull-face">💀</span>
+                    <div class="skull-flame-glow"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="wood-shelf-plank"></div>
+            </div>
+
+            <!-- Hanging Garlic Braid on Wall -->
+            <div class="hanging-garlic-braid" title="Hanging Garlic Braid">
+              <span>🧄</span>
+              <span>🧄</span>
+              <span>🧄</span>
+              <span>🧄</span>
+            </div>
+          </div>
+
+          <!-- Glowing Blue Neon Ghost Silhouette on Wall (In-Bounds) -->
+          <div class="neon-ghost-wall-sign">
+            <svg viewBox="0 0 100 130" width="80" height="105" class="neon-svg">
+              <defs>
+                <filter id="cyan-ghost-glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" result="gblur1"/>
+                  <feGaussianBlur stdDeviation="8" result="gblur2"/>
+                  <feMerge>
+                    <feMergeNode in="gblur2"/>
+                    <feMergeNode in="gblur1"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g stroke="#38bdf8" stroke-width="3.2" fill="rgba(56, 189, 248, 0.18)" filter="url(#cyan-ghost-glow)" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 50 15 Q 25 15 25 55 Q 18 62 12 75 Q 18 82 25 78 Q 22 105 28 115 Q 36 105 44 115 Q 52 105 60 115 Q 68 105 76 115 Q 82 105 78 78 Q 85 82 92 75 Q 86 62 78 55 Q 78 15 50 15 Z"/>
+                <ellipse cx="40" cy="48" rx="4.5" ry="7.5" fill="#38bdf8"/>
+                <ellipse cx="62" cy="48" rx="4.5" ry="7.5" fill="#38bdf8"/>
+                <ellipse cx="51" cy="68" rx="7" ry="10" fill="#38bdf8"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Brew Status Card with Ingredient Row & Indicator Arrow -->
+        <div class="brew-status-container">
+          <!-- Top Row of Target Ingredient Icons -->
+          <div class="target-ingredients-row">
+            <span class="target-ing-icon glow-purple">🍎</span>
+            <span class="target-ing-icon glow-blue">🍇</span>
+            <span class="target-ing-icon glow-orange">🌽</span>
+            <span class="target-ing-icon glow-green">🥕</span>
+            <span class="target-ing-icon glow-pumpkin">🎃</span>
+          </div>
+
+          <!-- 5 Beveled Added Ingredient Slots with Bouncing Indicator -->
+          <div class="added-ingredients-slots" id="added-ingredients-slots">
+            <!-- Dynamically populated and indicated by CandyBrewGame -->
+            <div class="slot active-indicator-slot">
+              <span class="slot-item">🍎</span>
+              <div class="bouncing-green-arrow">⬇️</div>
+            </div>
+            <div class="slot"></div>
+            <div class="slot"></div>
+            <div class="slot"></div>
+            <div class="slot"></div>
+          </div>
+          
+          <div class="brew-status-text-block">
+            <div class="brew-status-header-text">
+              BREW STATUS: <span class="acting-potently-glow">ACTING POTENTLY!</span>
+            </div>
+            <div class="status-effects-list" id="status-effects">
+              <div class="effect-line">Current effects: Candy munky</div>
+              <div class="effect-line">Current effects: Swom tacore</div>
+              <div class="effect-line">Current effects: Irraciamis</div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+
+    <!-- ====================================================================
+         3. VIRTUAL WAND TESTING BAR (FOOTER HOTKEYS)
+         ==================================================================== -->
+    <footer class="virtual-wand-bar">
+      <span class="virtual-wand-title">🪄 Virtual Wand:</span>
+      <button class="quick-gesture-btn" data-gesture="1" data-name="Stir Circle">🔄 Stir <span class="key-hint">C</span></button>
+      <button class="quick-gesture-btn" data-gesture="2" data-name="Flick Toss">🪄 Toss <span class="key-hint">F</span></button>
+      <button class="quick-gesture-btn" data-gesture="3" data-name="Shake Bubble">🫧 Bubble <span class="key-hint">S</span></button>
+      <button class="quick-gesture-btn" data-gesture="4" data-name="Vertical Slash">🔥 Slash <span class="key-hint">V</span></button>
+      <button class="quick-gesture-btn" data-gesture="5" data-name="Horizontal Wave">💨 Wave <span class="key-hint">W</span></button>
+      <button class="quick-gesture-btn" data-gesture="6" data-name="Spell Thrust">⚡ Thrust <span class="key-hint">T</span></button>
+    </footer>
+  </div>
+
+  <!-- ====================================================================
+       4. WAND MOTION & GESTURE TRAINING MODAL (DIRECT BODY CHILD FOR HIGHEST Z-INDEX)
+       ==================================================================== -->
+  <div class="wand-trainer-modal-backdrop" id="wand-trainer-modal" style="display: none;">
+    <div class="wand-trainer-modal-content">
+      <div class="trainer-header">
+        <div class="trainer-title">🪄 Wand Movement & Gesture Training</div>
+        <button class="trainer-close-btn" id="close-trainer-btn">✖</button>
+      </div>
+
+      <div class="trainer-live-monitor">
+        <div class="monitor-label">LIVE IMU MOTION SENSORS:</div>
+        <div class="imu-meters-row">
+          <div class="imu-meter"><span class="axis-label">X:</span><div class="meter-bar"><div class="meter-fill x" id="imu-x-fill"></div></div><span class="meter-val" id="imu-x-val">0.00g</span></div>
+          <div class="imu-meter"><span class="axis-label">Y:</span><div class="meter-bar"><div class="meter-fill y" id="imu-y-fill"></div></div><span class="meter-val" id="imu-y-val">0.00g</span></div>
+          <div class="imu-meter"><span class="axis-label">Z:</span><div class="meter-bar"><div class="meter-fill z" id="imu-z-fill"></div></div><span class="meter-val" id="imu-z-val">1.00g</span></div>
+        </div>
+        <div class="live-gesture-detected-box">
+          <span class="detected-label">LIVE PREDICTION:</span>
+          <span class="detected-badge" id="live-dtw-prediction">🟢 Ready - Move your Wand!</span>
+        </div>
+      </div>
+
+      <div class="trainer-gestures-grid">
+        <div class="trainer-gesture-card" data-gesture="stir">
+          <div class="tg-icon">🔄</div>
+          <div class="tg-info">
+            <div class="tg-name">Stir Cauldron</div>
+            <div class="tg-desc">Circle wand in the air</div>
+            <div class="tg-samples" id="samples-count-stir">3 Predefined Samples</div>
+          </div>
+          <button class="record-gesture-btn" data-gesture="stir">⏺️ Train</button>
+        </div>
+
+        <div class="trainer-gesture-card" data-gesture="toss">
+          <div class="tg-icon">🪄</div>
+          <div class="tg-info">
+            <div class="tg-name">Toss / Flick</div>
+            <div class="tg-desc">Quick wrist snap forward</div>
+            <div class="tg-samples" id="samples-count-toss">3 Predefined Samples</div>
+          </div>
+          <button class="record-gesture-btn" data-gesture="toss">⏺️ Train</button>
+        </div>
+
+        <div class="trainer-gesture-card" data-gesture="slash">
+          <div class="tg-icon">🔥</div>
+          <div class="tg-info">
+            <div class="tg-name">Downward Slash</div>
+            <div class="tg-desc">Chop downward vertically</div>
+            <div class="tg-samples" id="samples-count-slash">3 Predefined Samples</div>
+          </div>
+          <button class="record-gesture-btn" data-gesture="slash">⏺️ Train</button>
+        </div>
+
+        <div class="trainer-gesture-card" data-gesture="shake">
+          <div class="tg-icon">🫧</div>
+          <div class="tg-info">
+            <div class="tg-name">Shake / Bubble</div>
+            <div class="tg-desc">Vibrate wand quickly</div>
+            <div class="tg-samples" id="samples-count-shake">3 Predefined Samples</div>
+          </div>
+          <button class="record-gesture-btn" data-gesture="shake">⏺️ Train</button>
+        </div>
+
+        <div class="trainer-gesture-card" data-gesture="thrust">
+          <div class="tg-icon">⚡</div>
+          <div class="tg-info">
+            <div class="tg-name">Candy Thrust</div>
+            <div class="tg-desc">Jab / Poke directly forward</div>
+            <div class="tg-samples" id="samples-count-thrust">3 Predefined Samples</div>
+          </div>
+          <button class="record-gesture-btn" data-gesture="thrust">⏺️ Train</button>
+        </div>
+      </div>
+
+      <!-- Recording Overlay (3-2-1 Countdown) -->
+      <div class="recording-countdown-overlay" id="recording-countdown-overlay" style="display: none;">
+        <div class="countdown-big-number" id="countdown-display">3</div>
+        <div class="countdown-instruction" id="countdown-instruction">Get ready to perform gesture...</div>
+      </div>
+
+      <div class="trainer-footer">
+        <button class="btn-trainer-reset" id="reset-trainer-btn">🔄 Reset to Defaults</button>
+        <button class="btn-trainer-done" id="done-trainer-btn">✨ Done Training</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules (STEMSmartLabs DTW Pipeline) -->
+  <script src="./js/dynamic_time_warping.js"></script>
+  <script src="./js/gesture_trainer.js"></script>
+  <script src="./js/audio_synthesizer.js"></script>
+  <script src="./js/ble_manager.js"></script>
+  <script src="./js/particle_engine.js"></script>
+  <script src="./js/gesture_engine.js"></script>
+  <script src="./js/candy_brew_game.js"></script>
+  <script src="./js/monster_defense_game.js"></script>
+  <script src="./js/virtual_wand.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

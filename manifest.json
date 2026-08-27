@@ -1,0 +1,25 @@
+{
+  "name": "Witches' Halloween Candy Brew - Magic Wand",
+  "short_name": "Candy Brew",
+  "description": "Interactive Halloween Magic Wand PWA for kids featuring bubbling cauldron alchemy, candy brewing, and monster defense.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#06030a",
+  "theme_color": "#ff7518",
+  "categories": ["games", "entertainment", "kids"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
