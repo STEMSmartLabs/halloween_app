@@ -678,11 +678,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  background: rgba(5, 18, 10, 0.95);
+  gap: 10px;
+  background: rgba(8, 3, 14, 0.96);
   border: 2.5px solid #22c55e;
   box-shadow: 0 0 25px rgba(34, 197, 94, 0.8), 0 8px 24px rgba(0, 0, 0, 0.9);
-  padding: 8px 26px;
+  padding: 7px 22px;
   border-radius: 28px;
   backdrop-filter: blur(12px);
   animation: action-pulse 2s infinite ease-in-out;
@@ -690,11 +690,11 @@ body {
 
 @keyframes action-pulse {
   0%, 100% {
-    box-shadow: 0 0 18px var(--neon-green-glow);
+    box-shadow: 0 0 16px var(--neon-green-glow);
     border-color: #22c55e;
   }
   50% {
-    box-shadow: 0 0 30px rgba(74, 222, 128, 0.95), 0 0 45px rgba(34, 197, 94, 0.6);
+    box-shadow: 0 0 28px rgba(74, 222, 128, 0.95), 0 0 40px rgba(34, 197, 94, 0.6);
     border-color: #4ade80;
   }
 }
@@ -702,11 +702,12 @@ body {
 .action-tag {
   font-size: 11px;
   font-weight: 900;
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.25);
+  color: #022c22;
+  background: #4ade80;
   padding: 3px 8px;
   border-radius: 6px;
   letter-spacing: 1px;
+  text-shadow: none;
 }
 
 .action-instruction-text {
@@ -714,7 +715,7 @@ body {
   font-size: 18px;
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 0 2px 8px #000, 0 0 12px #22c55e;
+  text-shadow: 0 2px 6px #000, 0 0 8px rgba(34, 197, 94, 0.6);
   letter-spacing: 0.5px;
 }
 
@@ -1405,3 +1406,505 @@ body {
   transform: scale(1.04);
   box-shadow: 0 0 24px rgba(16, 185, 129, 0.8);
 }
+
+/* ==========================================================================
+   8. COMPREHENSIVE RESPONSIVE MOBILE & TABLET MEDIA QUERIES
+   ========================================================================== */
+
+/* A. Tablets & Small Laptops (769px - 1024px) */
+@media (max-width: 1024px) {
+  #app-container {
+    padding: 8px 14px;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .brand-title-orange { font-size: 32px; }
+  .brand-title-green { font-size: 42px; }
+
+  .attic-window-container {
+    transform: scale(0.85);
+  }
+
+  .candy-pail-card {
+    width: 240px;
+    padding: 8px 12px;
+  }
+
+  .main-stage {
+    grid-template-columns: 150px 120px 1fr 240px;
+    gap: 8px;
+  }
+
+  .cauldron-container {
+    width: 340px;
+    height: 280px;
+  }
+
+  .ing-badge {
+    width: 50px;
+    height: 50px;
+  }
+  .ing-emoji { font-size: 26px; }
+
+  .shelf-and-ghost-wrapper {
+    flex-direction: column;
+  }
+}
+
+/* B. Mobile Phones (Portrait <= 768px) - 100dvh Zero-Scroll Fit */
+@media (max-width: 768px) {
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    position: fixed;
+    width: 100%;
+  }
+
+  #app-container {
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 4px 8px 44px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+    z-index: 30;
+  }
+
+  /* 1. Top Navigation Bar (Header) */
+  .top-nav {
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 0 0 2px 0;
+    margin-bottom: 2px;
+    z-index: 30;
+  }
+
+  .brand-section {
+    order: 1;
+    line-height: 0.85;
+  }
+
+  .brand-title-orange {
+    font-size: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .brand-title-green {
+    font-size: 20px;
+    letter-spacing: 0.8px;
+  }
+
+  .attic-window-container {
+    display: none; /* Hide decorative window to maximize play field */
+  }
+
+  .candy-pail-card {
+    order: 2;
+    width: 135px;
+    padding: 4px 6px;
+    border-radius: 10px;
+    gap: 2px;
+    border-width: 1.5px;
+  }
+
+  .candy-pail-title {
+    font-size: 8px;
+    letter-spacing: 0.3px;
+  }
+
+  .candy-bar-track {
+    height: 14px;
+    border-radius: 7px;
+  }
+
+  .candy-sprite-row {
+    display: none;
+  }
+
+  .candy-bar-percent {
+    font-size: 9px;
+  }
+
+  .candy-fraction-label {
+    font-size: 8px;
+  }
+
+  .pail-pumpkin-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 2. Main Stage Vertical Stack */
+  .main-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+    margin-top: 0;
+    z-index: 30;
+    min-height: 0;
+  }
+
+  /* Wand Status Bar (Top Slim Pill Widget) */
+  .left-panel {
+    order: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    z-index: 30;
+  }
+
+  .neon-signs-stack {
+    display: none;
+  }
+
+  .wand-status-widget {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 10px;
+    border-radius: 12px;
+    width: 100%;
+    gap: 6px;
+    border-width: 1.5px;
+  }
+
+  .wand-status-header {
+    display: none;
+  }
+
+  .wand-illustration-box {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .wand-icon-svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .wand-info-block {
+    margin-bottom: 0;
+    text-align: left;
+  }
+
+  .wand-model-label {
+    font-size: 8px;
+  }
+
+  .wand-conn-status {
+    font-size: 10px;
+  }
+
+  .wand-battery-gauge {
+    gap: 3px;
+  }
+
+  .battery-pill-track {
+    width: 28px;
+    height: 11px;
+  }
+
+  .battery-text {
+    font-size: 8px;
+  }
+
+  .wand-level-tag {
+    margin-top: 0;
+    font-size: 8px;
+    padding: 2px 5px;
+  }
+
+  .wand-train-btn {
+    margin-top: 0;
+    font-size: 8px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  /* 3. Cauldron Center Hero */
+  .center-cauldron-section {
+    order: 2;
+    width: 100%;
+    padding-bottom: 0;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    position: relative;
+  }
+
+  .neon-bat-banner {
+    display: none;
+  }
+
+  .top-instruction-hud {
+    position: relative;
+    top: 0;
+    max-width: 100%;
+    margin-bottom: 3px;
+    z-index: 35;
+    pointer-events: none;
+  }
+
+  .active-recipe-tag {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  .recipe-action-banner {
+    padding: 4px 14px;
+    border-radius: 16px;
+    gap: 6px;
+    border-width: 2px;
+    background: rgba(8, 3, 14, 0.98);
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.9), 0 4px 12px rgba(0, 0, 0, 0.95);
+  }
+
+  .action-instruction-text {
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 2px 4px #000;
+  }
+
+  .action-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    color: #022c22;
+    background: #4ade80;
+    font-weight: 900;
+    border-radius: 4px;
+  }
+
+  .spell-feedback-toast {
+    font-size: 13px;
+    padding: 4px 14px;
+    top: 32px;
+  }
+
+  .cauldron-container {
+    width: 190px;
+    height: 145px;
+    max-width: 65vw;
+    position: relative;
+  }
+
+  .cauldron-action-bar {
+    margin-top: 2px;
+    z-index: 35;
+  }
+
+  .neon-action-btn {
+    padding: 4px 18px;
+    border-radius: 10px;
+    border-width: 2px;
+  }
+
+  .neon-btn-text {
+    font-size: 14px;
+    letter-spacing: 0.8px;
+  }
+
+  /* 4. Ingredients Shelf (Horizontal Carousel) */
+  .ingredients-section {
+    order: 3;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0;
+    z-index: 30;
+    position: relative;
+  }
+
+  .section-title-neon {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .ingredients-matrix {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding: 2px 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ingredient-card {
+    gap: 1px;
+    flex-shrink: 0;
+  }
+
+  .ingredient-card.span-full {
+    grid-column: auto;
+  }
+
+  .ing-badge {
+    width: 38px;
+    height: 38px;
+    border-width: 2px;
+  }
+
+  .ing-emoji {
+    font-size: 20px;
+  }
+
+  .ing-count {
+    font-size: 11px;
+  }
+
+  /* 5. Brew Status Card (Compact HUD) */
+  .right-panel {
+    order: 4;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0;
+    z-index: 30;
+    position: relative;
+  }
+
+  .shelf-and-ghost-wrapper {
+    display: none;
+  }
+
+  .brew-status-container {
+    width: 100%;
+    max-width: 330px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    gap: 3px;
+  }
+
+  .target-ingredients-row {
+    gap: 4px;
+  }
+
+  .target-ing-icon {
+    font-size: 14px;
+  }
+
+  .added-ingredients-slots {
+    gap: 4px;
+  }
+
+  .added-ingredients-slots .slot {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  .slot-item {
+    font-size: 13px;
+  }
+
+  .bouncing-green-arrow {
+    font-size: 12px;
+    top: -14px;
+  }
+
+  .brew-status-header-text {
+    font-size: 8px;
+  }
+
+  .status-effects-list {
+    display: none;
+  }
+
+  /* 6. Virtual Wand Bar (Fixed Bottom Touch Carousel) */
+  .virtual-wand-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 38px;
+    z-index: 100;
+    background: rgba(10, 3, 16, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 4px 8px;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    align-items: center;
+    justify-content: flex-start;
+    border-top: 1.5px solid #442262;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.9);
+  }
+
+  .virtual-wand-title {
+    font-size: 9px;
+    white-space: nowrap;
+    align-self: center;
+    color: #facc15;
+  }
+
+  .quick-gesture-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 6px;
+  }
+
+  .key-hint {
+    display: none;
+  }
+
+  /* Wand Trainer Modal Mobile Scaling */
+  .wand-trainer-modal-content {
+    width: 95%;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .trainer-title {
+    font-size: 15px;
+  }
+
+  .imu-meters-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .trainer-gestures-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    max-height: 160px;
+  }
+
+  .countdown-big-number {
+    font-size: 44px;
+  }
+}
+

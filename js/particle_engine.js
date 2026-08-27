@@ -398,33 +398,39 @@ class HalloweenParticleEngine {
 
   spawnFlames() {
     this.updateCauldronCenter();
-    const baseY = this.cauldronCenter.y + 160;
+    const cauldronEl = document.querySelector('.cauldron-container');
+    let cauldronH = 240;
+    if (cauldronEl) {
+      cauldronH = cauldronEl.getBoundingClientRect().height;
+    }
+    // Anchor flame origins directly under cauldron feet
+    const baseY = this.cauldronCenter.y + (cauldronH * 0.38);
     const count = Math.floor(Math.random() * 2 * this.fireIntensity) + 1;
 
     for (let i = 0; i < count; i++) {
-      const spreadX = (Math.random() - 0.5) * (this.cauldronRadiusX * 1.5);
+      const spreadX = (Math.random() - 0.5) * (this.cauldronRadiusX * 1.3);
       this.flames.push({
         x: this.cauldronCenter.x + spreadX,
-        y: baseY + Math.random() * 15,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: -Math.random() * (3.5 * this.fireIntensity) - 2.0,
-        radius: Math.random() * 16 + 10,
+        y: baseY + Math.random() * 8,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: -Math.random() * (2.8 * this.fireIntensity) - 1.6,
+        radius: Math.random() * 12 + 8,
         colorType: Math.random() > 0.4 ? 'yellow' : 'orange',
         alpha: 0.85,
-        decay: 0.035
+        decay: 0.045
       });
     }
 
-    if (Math.random() < 0.35 * this.fireIntensity) {
+    if (Math.random() < 0.3 * this.fireIntensity) {
       this.embers.push({
-        x: this.cauldronCenter.x + (Math.random() - 0.5) * (this.cauldronRadiusX * 1.4),
+        x: this.cauldronCenter.x + (Math.random() - 0.5) * (this.cauldronRadiusX * 1.2),
         y: baseY,
-        vx: (Math.random() - 0.5) * 2.5,
-        vy: -Math.random() * 5.0 - 3.0,
+        vx: (Math.random() - 0.5) * 2.0,
+        vy: -Math.random() * 4.0 - 2.5,
         gravity: 0.05,
-        radius: Math.random() * 2.5 + 1.0,
+        radius: Math.random() * 2.2 + 1.0,
         alpha: 1.0,
-        decay: 0.015
+        decay: 0.02
       });
     }
   }
@@ -867,23 +873,25 @@ class HalloweenParticleEngine {
     this.ctx.save();
     const cx = this.cauldronCenter.x;
     const cy = this.cauldronCenter.y;
+    // Scale items down if cauldron is scaled down on mobile/tablet
+    const scale = Math.min(1.0, Math.max(0.55, this.cauldronRadiusX / 140.0));
 
     for (let i = 0; i < this.plumeItems.length; i++) {
       const item = this.plumeItems[i];
       item.phase += item.speed;
 
-      const bobY = Math.sin(item.phase) * item.amp;
-      const posX = cx + item.offsetX;
-      const posY = cy + item.offsetY + bobY;
+      const bobY = Math.sin(item.phase) * (item.amp * scale);
+      const posX = cx + item.offsetX * scale;
+      const posY = cy + (item.offsetY * scale) + bobY;
 
       this.ctx.save();
       this.ctx.translate(posX, posY);
       this.ctx.rotate(item.rot + Math.sin(item.phase * 0.7) * 0.08);
 
       this.ctx.shadowColor = item.glow;
-      this.ctx.shadowBlur = 22;
+      this.ctx.shadowBlur = Math.round(15 * scale);
 
-      this.ctx.font = `${item.size}px sans-serif`;
+      this.ctx.font = `${Math.round(item.size * scale)}px sans-serif`;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       this.ctx.fillText(item.emoji, 0, 0);

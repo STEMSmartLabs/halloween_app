@@ -146,7 +146,8 @@ class CandyBrewGame {
     if (actionTextEl) {
       if (currentStep) {
         if (currentStep.type === 'ingredient') {
-          actionTextEl.textContent = `Toss ${currentStep.name}`;
+          const icon = currentStep.icon || '🍎';
+          actionTextEl.textContent = `${icon} Toss ${currentStep.count || 1} ${currentStep.name}`;
         } else if (currentStep.type === 'gesture') {
           const repeatStr = currentStep.needed && currentStep.needed > 1 ? ` (${currentStep.needed}x)` : '';
           actionTextEl.textContent = `${currentStep.icon} ${currentStep.name}${repeatStr}`;

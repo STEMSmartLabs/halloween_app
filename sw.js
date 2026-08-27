@@ -3,12 +3,20 @@
  * @brief Service Worker for Witches' Halloween Candy Brew PWA (100% Offline Support)
  */
 
-const CACHE_NAME = 'candy-brew-v1.0.0';
+const CACHE_NAME = 'candy-brew-v2.2.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './favicon.ico',
+  './icons/icon-512.png',
+  './icons/icon-192.png',
+  './icons/apple-touch-icon.png',
+  './icons/favicon-32x32.png',
+  './icons/favicon-16x16.png',
   './css/halloween.css',
+  './js/dynamic_time_warping.js',
+  './js/gesture_trainer.js',
   './js/ble_manager.js',
   './js/audio_synthesizer.js',
   './js/particle_engine.js',
