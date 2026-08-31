@@ -1,87 +1,82 @@
 /**
  * @file candy_brew_game.js
- * @brief Master Recipe State Manager with Wand Progression & Combo Multipliers
+ * @brief Master Recipe State Manager with 3-Level Goody Box Unlock (5-3-8) & Restart Flow
  */
 
 class CandyBrewGame {
   constructor() {
-    this.currentRecipeIndex = 0;
+    this.currentLevelIndex = 0; // 0: Level 1, 1: Level 2, 2: Level 3
     this.currentStepIndex = 0;
-    this.totalCandy = 75;
+    this.isGameCompleted = false;
 
-    // Wand Level Progression (Idea 2)
-    this.wandLevel = 1; // 1: Apprentice, 2: Candy Mage, 3: Master Choco-Sorcerer
+    // Surprise Goody Box 3-Digit Combination Key (538)
+    this.unlockKey = ['5', '3', '8'];
+    this.revealedDigits = [false, false, false];
 
-    // Spell Combo Tracker (Idea 2)
+    // Wand Level Progression (1: Apprentice, 2: Candy Mage, 3: Master Choco-Sorcerer)
+    this.wandLevel = 1;
+
+    // Spell Combo Tracker
     this.comboCount = 0;
     this.lastGestureTime = 0;
+    this.lastIngredientAddedTime = 0;
+    this.lastGestureHandledTime = 0;
 
-    // Updated harvest recipes (Fruits & Vegetables only, leading to Chocolate Eruptions)
+    // 3 Halloween Magic Levels (Progressive Difficulty)
     this.recipes = [
       {
+        level: 1,
         id: 'pumpkin_spice_glow',
         name: 'Pumpkin Spice Choco-Elixir',
         icon: '🎃',
-        tag: 'Halloween Magic Recipe',
+        tag: 'Level 1: Apprentice Brew',
         liquidColor: '#22c55e', 
         glowColor: 'rgba(34, 197, 94, 0.95)',
-        rewardCandy: 15,
+        revealDigit: '5',
         steps: [
-          { type: 'ingredient', item: 'apple', count: 2, name: '2 Apples', icon: '🍎' },
-          { type: 'ingredient', item: 'pumpkin', count: 1, name: '1 Mini Pumpkin', icon: '🎃' },
-          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Stir Cauldron', icon: '🔄', needed: 2 },
-          { type: 'gesture', gestureId: 4, gestureType: 'slash', name: 'Ignite Flame', icon: '🔥', needed: 1 }
+          { type: 'ingredient', item: 'pumpkin', count: 2, initialCount: 2, name: 'Mini Pumpkins', icon: '🎃' },
+          { type: 'ingredient', item: 'apple', count: 3, initialCount: 3, name: 'Apples', icon: '🍎' },
+          { type: 'ingredient', item: 'orange', count: 2, initialCount: 2, name: 'Oranges', icon: '🍊' },
+          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Stir Cauldron', icon: '🔄', needed: 3, initialNeeded: 3 }
         ]
       },
       {
-        id: 'harvest_moon_brew',
-        name: 'Harvest Moon Choco-Truffle Brew',
-        icon: '🌕',
-        tag: 'Autumn Festival Recipe',
+        level: 2,
+        id: 'citrus_berry_blast',
+        name: 'Citrus Berry Choco-Potion',
+        icon: '🍓',
+        tag: 'Level 2: Candy Mage Potion',
         liquidColor: '#a855f7', 
         glowColor: 'rgba(168, 85, 247, 0.95)',
-        rewardCandy: 20,
+        revealDigit: '3',
         steps: [
-          { type: 'ingredient', item: 'grapes', count: 2, name: '2 Grapes', icon: '🍇' },
-          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Stir Cauldron', icon: '🔄', needed: 3 },
-          { type: 'gesture', gestureId: 2, gestureType: 'toss', name: 'Flick Wand In', icon: '🪄', needed: 1 },
-          { type: 'gesture', gestureId: 6, gestureType: 'thrust', name: 'Cast Candy Blast', icon: '⚡', needed: 1 }
+          { type: 'ingredient', item: 'strawberry', count: 3, initialCount: 3, name: 'Strawberries', icon: '🍓' },
+          { type: 'ingredient', item: 'orange', count: 3, initialCount: 3, name: 'Oranges', icon: '🍊' },
+          { type: 'ingredient', item: 'pumpkin', count: 2, initialCount: 2, name: 'Mini Pumpkins', icon: '🎃' },
+          { type: 'ingredient', item: 'apple', count: 2, initialCount: 2, name: 'Apples', icon: '🍎' },
+          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Stir Cauldron', icon: '🔄', needed: 4, initialNeeded: 4 }
         ]
       },
       {
-        id: 'candy_corn_sugar_rush',
-        name: 'Candy Corn Chocolate Rush',
-        icon: '🌽',
-        tag: 'Sweet Tooth Alchemist Brew',
-        liquidColor: '#facc15',
-        glowColor: 'rgba(250, 204, 21, 0.95)',
-        rewardCandy: 25,
-        steps: [
-          { type: 'ingredient', item: 'candycorn', count: 4, name: '4 Candy Corns', icon: '🌽' },
-          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Stir Smoothly', icon: '🔄', needed: 2 },
-          { type: 'gesture', gestureId: 3, gestureType: 'bubble', name: 'Furious Shake', icon: '🫧', needed: 2 }
-        ]
-      },
-      {
-        id: 'ultimate_harvest_megabrew',
-        name: "Ultimate Harvest Mega Choco-Brew",
+        level: 3,
+        id: 'grand_master_brew',
+        name: "Grand Master Choco-Cauldron",
         icon: '🍫',
-        tag: 'Legendary Master Recipe',
+        tag: 'Level 3: Grand Master Elixir',
         liquidColor: '#38bdf8',
         glowColor: 'rgba(56, 189, 248, 0.95)',
-        rewardCandy: 35,
+        revealDigit: '8',
         steps: [
-          { type: 'ingredient', item: 'carrot', count: 1, name: '1 Carrot', icon: '🥕' },
-          { type: 'ingredient', item: 'candycorn', count: 3, name: '3 Candy Corns', icon: '🌽' },
-          { type: 'ingredient', item: 'apple', count: 1, name: '1 Apple', icon: '🍎' },
-          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Stir Cauldron', icon: '🔄', needed: 3 },
-          { type: 'gesture', gestureId: 4, gestureType: 'slash', name: 'Ignite Mystic Fire', icon: '🔥', needed: 1 },
-          { type: 'gesture', gestureId: 6, gestureType: 'thrust', name: 'Mega Chocolate Blast', icon: '⚡', needed: 1 }
+          { type: 'ingredient', item: 'apple', count: 3, initialCount: 3, name: 'Apples', icon: '🍎' },
+          { type: 'ingredient', item: 'strawberry', count: 3, initialCount: 3, name: 'Strawberries', icon: '🍓' },
+          { type: 'ingredient', item: 'pumpkin', count: 3, initialCount: 3, name: 'Mini Pumpkins', icon: '🎃' },
+          { type: 'ingredient', item: 'orange', count: 3, initialCount: 3, name: 'Oranges', icon: '🍊' },
+          { type: 'gesture', gestureId: 1, gestureType: 'stir', name: 'Grand Master Stir', icon: '🔄', needed: 5, initialNeeded: 5 }
         ]
       }
     ];
 
-    this.addedIngredients = ['apple'];
+    this.addedIngredients = [];
 
     this.initUI();
     this.attachGestureListener();
@@ -90,7 +85,7 @@ class CandyBrewGame {
   initUI() {
     this.renderCurrentRecipe();
     this.updateCandyDisplay();
-    this.updateAddedIngredientsSlots();
+    this.updateGoodyBoxUI();
     this.updateWandLevelUI();
     
     // Attach click listeners to ingredient cards
@@ -99,6 +94,17 @@ class CandyBrewGame {
         this.addIngredient(card.dataset.ingredient, card);
       });
     });
+
+    // Attach Restart listeners
+    const restartBtn = document.getElementById('btn-restart-game');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => this.restartGame());
+    }
+
+    const victoryRestartBtn = document.getElementById('btn-victory-restart');
+    if (victoryRestartBtn) {
+      victoryRestartBtn.addEventListener('click', () => this.restartGame());
+    }
   }
 
   attachGestureListener() {
@@ -110,13 +116,44 @@ class CandyBrewGame {
   }
 
   getCurrentRecipe() {
-    return this.recipes[this.currentRecipeIndex];
+    return this.recipes[this.currentLevelIndex];
   }
 
   getCurrentStep() {
     const recipe = this.getCurrentRecipe();
     if (!recipe || this.currentStepIndex >= recipe.steps.length) return null;
     return recipe.steps[this.currentStepIndex];
+  }
+
+  getLevelPercentage(lvlIdx) {
+    if (lvlIdx < this.currentLevelIndex || this.isGameCompleted) {
+      return 100;
+    }
+    if (lvlIdx > this.currentLevelIndex) {
+      return 0;
+    }
+
+    const recipe = this.recipes[lvlIdx];
+    if (!recipe) return 0;
+
+    let totalSubActions = 0;
+    let completedSubActions = 0;
+
+    for (let i = 0; i < recipe.steps.length; i++) {
+      const step = recipe.steps[i];
+      const maxCount = step.initialCount || step.initialNeeded || (step.type === 'ingredient' ? step.count : step.needed) || 1;
+      totalSubActions += maxCount;
+
+      if (i < this.currentStepIndex) {
+        completedSubActions += maxCount;
+      } else if (i === this.currentStepIndex) {
+        const remaining = step.type === 'ingredient' ? (step.count || 0) : (step.needed || 0);
+        completedSubActions += Math.max(0, maxCount - remaining);
+      }
+    }
+
+    if (totalSubActions === 0) return 0;
+    return Math.min(100, Math.round((completedSubActions / totalSubActions) * 100));
   }
 
   renderCurrentRecipe() {
@@ -147,15 +184,22 @@ class CandyBrewGame {
       if (currentStep) {
         if (currentStep.type === 'ingredient') {
           const icon = currentStep.icon || '🍎';
-          actionTextEl.textContent = `${icon} Toss ${currentStep.count || 1} ${currentStep.name}`;
+          const dirHints = {
+            apple: '⬅️ Left',
+            strawberry: '➡️ Right',
+            orange: '⬆️ Up',
+            pumpkin: '⬇️ Down'
+          };
+          const hint = dirHints[currentStep.item] ? ` (${dirHints[currentStep.item]})` : '';
+          actionTextEl.textContent = `${icon} Toss ${currentStep.count || 1} ${currentStep.name}${hint}`;
         } else if (currentStep.type === 'gesture') {
           const repeatStr = currentStep.needed && currentStep.needed > 1 ? ` (${currentStep.needed}x)` : '';
-          actionTextEl.textContent = `${currentStep.icon} ${currentStep.name}${repeatStr}`;
+          actionTextEl.textContent = `${currentStep.icon} ${currentStep.name} (🔄 Circle)${repeatStr}`;
         } else {
           actionTextEl.textContent = `${currentStep.name}`;
         }
       } else {
-        actionTextEl.textContent = "✨ Recipe Ready!";
+        actionTextEl.textContent = "✨ Level Recipe Ready!";
       }
     }
 
@@ -183,100 +227,69 @@ class CandyBrewGame {
     }
   }
 
-  updateAddedIngredientsSlots() {
-    const slotsContainer = document.getElementById('added-ingredients-slots');
-    if (!slotsContainer) return;
-    
-    const maxSlots = 5;
-    slotsContainer.innerHTML = '';
-    
-    for (let i = 0; i < maxSlots; i++) {
-      const slot = document.createElement('div');
-      slot.className = 'slot';
-      
-      if (i < this.addedIngredients.length) {
-        const item = this.addedIngredients[i];
-        slot.classList.add('has-item');
-        
-        const itemSpan = document.createElement('span');
-        itemSpan.className = 'slot-item';
-        itemSpan.textContent = this.getEmojiForItem(item);
-        slot.appendChild(itemSpan);
-        
-        if (i === 0) {
-          const arrow = document.createElement('div');
-          arrow.className = 'bouncing-green-arrow';
-          arrow.textContent = '⬇️';
-          slot.appendChild(arrow);
-        }
-      }
-      slotsContainer.appendChild(slot);
-    }
-  }
-
   getEmojiForItem(itemType) {
     const itemEmojis = {
+      strawberry: '🍓',
+      orange: '🍊',
       apple: '🍎',
-      grapes: '🍇',
-      candycorn: '🌽',
-      carrot: '🥕',
       pumpkin: '🎃'
     };
     return itemEmojis[itemType] || '🍬';
   }
 
   addIngredient(itemType, fromElement) {
+    const now = performance.now();
+    // 500ms debounce guard
+    if (now - this.lastIngredientAddedTime < 500) {
+      return;
+    }
+    this.lastIngredientAddedTime = now;
+
     const currentStep = this.getCurrentStep();
+    if (!currentStep) return;
+
+    // During Stir/Gesture step, completely disallow adding ingredients!
+    if (currentStep.type !== 'ingredient') {
+      return;
+    }
+
     const emoji = this.getEmojiForItem(itemType);
-    
+
+    // Invalid Item Attempted during Ingredient step -> Throw and Burst in Mid-Air!
+    if (currentStep.item !== itemType) {
+      if (window.particleEngine) {
+        window.particleEngine.throwIngredient(fromElement, emoji, '#ef4444', false);
+      }
+      this.comboCount = 0;
+      return;
+    }
+
+    // Valid Ingredient: Fly into Cauldron and advance step
     this.addedIngredients.unshift(itemType);
     if (this.addedIngredients.length > 5) {
       this.addedIngredients.pop();
     }
-    this.updateAddedIngredientsSlots();
 
     if (window.particleEngine) {
-      window.particleEngine.throwIngredient(fromElement, emoji, this.getCurrentRecipe().liquidColor);
+      window.particleEngine.throwIngredient(fromElement, emoji, this.getCurrentRecipe().liquidColor, true);
     }
 
-    if (currentStep && currentStep.type === 'ingredient' && currentStep.item === itemType) {
-      currentStep.count--;
-      this.triggerComboHit();
+    currentStep.count--;
+    this.triggerComboHit();
 
-      if (currentStep.count <= 0) {
-        this.showFloatingFeedback(`✨ Great Job! ${emoji} Added!`);
-        this.advanceStep();
-      } else {
-        this.showFloatingFeedback(`Added! Need ${currentStep.count} more ${emoji}`);
-        this.renderCurrentRecipe();
-      }
+    if (currentStep.count <= 0) {
+      this.showFloatingFeedback(`✨ Great Job! ${emoji} Added!`);
+      this.advanceStep();
     } else {
-      this.showFloatingFeedback(`Tossed ${emoji} into brew!`);
+      this.showFloatingFeedback(`Added! Need ${currentStep.count} more ${emoji}`);
+      this.renderCurrentRecipe();
     }
-    
-    this.updateBrewStatusEffects();
-  }
-  
-  updateBrewStatusEffects() {
-    const effectsEl = document.getElementById('status-effects');
-    if (!effectsEl) return;
-    
-    const possibleEffects = [
-      "Candy munky", "Swom tacore", "Irraciamis", "Glow burst", 
-      "Sugar rush", "Harvest shine", "Sweet aura", "Mystic pop",
-      "Choco melt", "Cocoa swirl"
-    ];
-    
-    const shuffled = [...possibleEffects].sort(() => 0.5 - Math.random());
-    effectsEl.innerHTML = `
-      <div class="effect-line">Current effects: ${shuffled[0]}</div>
-      <div class="effect-line">Current effects: ${shuffled[1]}</div>
-      <div class="effect-line">Current effects: ${shuffled[2]}</div>
-    `;
+
+    this.updateCandyDisplay();
   }
 
   // =========================================================================
-  // GESTURE COMBO MULTIPLIER (IDEA 2)
+  // GESTURE COMBO MULTIPLIER
   // =========================================================================
   triggerComboHit() {
     const now = performance.now();
@@ -296,49 +309,49 @@ class CandyBrewGame {
   }
 
   handleGestureInput(gestureId, intensity) {
-    if (window.particleEngine) {
-      window.particleEngine.triggerSpellEffect(gestureId);
-    }
+    if (!gestureId || gestureId === 0) return;
 
-    if (window.monsterDefense && window.monsterDefense.isActive) {
-      window.monsterDefense.handleGesture(gestureId);
+    const now = performance.now();
+    if (now - this.lastGestureHandledTime < 500) {
+      return;
     }
+    this.lastGestureHandledTime = now;
 
     const currentStep = this.getCurrentStep();
     if (!currentStep) return;
 
-    const gestureNames = {
-      1: '🔄 Stir Cauldron',
-      2: '🪄 Flick / Toss',
-      3: '🫧 Shake / Bubble',
-      4: '🔥 Downward Slash',
-      5: '💨 Horizontal Wave',
-      6: '⚡ Thrust / Blast'
+    // Directional actions to ingredient item mapping:
+    // 2: Up -> orange
+    // 3: Down -> pumpkin
+    // 4: Left -> apple
+    // 5: Right -> strawberry
+    const dirToItem = {
+      2: 'orange',
+      3: 'pumpkin',
+      4: 'apple',
+      5: 'strawberry'
     };
 
-    // Suppress Idle / None gestures
-    if (!gestureId || gestureId === 0) return;
-
-    // 1. INGREDIENT STEP: Only intentional Wand Flick (2), Thrust (6), or Button A tosses the ingredient!
+    // 1. INGREDIENT STEP:
     if (currentStep.type === 'ingredient') {
-      if (gestureId === 2 || gestureId === 6) {
-        const neededItem = currentStep.item;
-        const targetCard = document.querySelector(`.ingredient-card[data-ingredient="${neededItem}"]`);
-        this.addIngredient(neededItem, targetCard || document.body);
+      const movedItem = dirToItem[gestureId];
+      if (movedItem) {
+        const targetCard = document.querySelector(`.ingredient-card[data-ingredient="${movedItem}"]`);
+        this.addIngredient(movedItem, targetCard || document.body);
       }
       return;
     }
 
-    // 2. GESTURE STEP: Check matching gesture
+    // 2. GESTURE / STIR STEP:
+    // During Stir phase, ONLY accept stir gesture (ID: 1). Completely ignore any linear directional gestures!
     if (currentStep.type === 'gesture') {
       const isMatch = (currentStep.gestureId === gestureId) || 
-                      (gestureId === 1 && currentStep.gestureType === 'stir') ||
-                      (gestureId === 2 && currentStep.gestureType === 'toss') ||
-                      (gestureId === 3 && currentStep.gestureType === 'bubble') ||
-                      (gestureId === 4 && currentStep.gestureType === 'slash') ||
-                      (gestureId === 6 && currentStep.gestureType === 'thrust');
+                      (gestureId === 1 && currentStep.gestureType === 'stir');
 
       if (isMatch) {
+        if (window.particleEngine) {
+          window.particleEngine.triggerSpellEffect(gestureId);
+        }
         this.triggerComboHit();
 
         if (currentStep.needed) {
@@ -347,16 +360,16 @@ class CandyBrewGame {
             this.showFloatingFeedback(`✨ ${currentStep.name} Complete!`);
             this.advanceStep();
           } else {
-            this.showFloatingFeedback(`🌟 Good! Repeat ${currentStep.needed} more times!`);
+            this.showFloatingFeedback(`🌟 Good! Stir ${currentStep.needed} more time(s)!`);
             this.renderCurrentRecipe();
           }
         } else {
           this.advanceStep();
         }
-      } else {
-        // Helpful feedback on different movement
-        this.showFloatingFeedback(`Sensed ${gestureNames[gestureId] || 'Wand Action'}! Need ${currentStep.icon} ${currentStep.name}`);
+        this.updateCandyDisplay();
       }
+      // Non-stir gestures are completely suppressed during stir phase
+      return;
     }
   }
 
@@ -368,40 +381,111 @@ class CandyBrewGame {
       this.completeRecipe(recipe);
     } else {
       this.renderCurrentRecipe();
+      this.updateCandyDisplay();
     }
   }
 
   completeRecipe(recipe) {
-    console.log(`[Game] Brew Complete: ${recipe.name}`);
-    const bonus = this.comboCount >= 3 ? 10 : 0;
-    const earned = recipe.rewardCandy + bonus;
-    this.totalCandy = Math.min(100, this.totalCandy + earned);
-    
+    const lvlIdx = this.currentLevelIndex;
+    console.log(`[Game] Level ${lvlIdx + 1} Complete: ${recipe.name}`);
+
+    // Reveal this level's secret lock digit!
+    this.revealedDigits[lvlIdx] = true;
+    const revealedDigit = this.unlockKey[lvlIdx];
+
+    // Sound & VFX
+    if (window.halloweenAudio) {
+      window.halloweenAudio.playDigitUnlockSound();
+    }
+    if (window.particleEngine) {
+      window.particleEngine.spawnCelebrationBurst();
+    }
+
     this.checkWandLevelUp();
     this.updateCandyDisplay();
+    this.updateGoodyBoxUI();
 
-    if (window.particleEngine) window.particleEngine.spawnCelebrationBurst();
-    if (window.halloweenAudio) window.halloweenAudio.playRecipeCompleteFanfare();
-
-    const bonusText = bonus > 0 ? ` (+${bonus} Combo Bonus!)` : '';
-    this.showFloatingFeedback(`🍫 ${recipe.name} ERUPTION! +${earned} Treats!${bonusText}`);
+    this.showFloatingFeedback(`🎉 LEVEL ${lvlIdx + 1} COMPLETE! Lock Digit Revealed: [ ${revealedDigit} ]`);
 
     setTimeout(() => {
-      this.currentRecipeIndex = (this.currentRecipeIndex + 1) % this.recipes.length;
-      this.currentStepIndex = 0;
-      this.comboCount = 0;
-      this.renderCurrentRecipe();
-    }, 2800);
+      if (this.currentLevelIndex < 2) {
+        // Advance to next level
+        this.currentLevelIndex++;
+        this.currentStepIndex = 0;
+        this.comboCount = 0;
+        this.renderCurrentRecipe();
+        this.updateCandyDisplay();
+        this.updateGoodyBoxUI();
+      } else {
+        // All 3 Levels Finished!
+        this.triggerGameFinish();
+      }
+    }, 2400);
+  }
+
+  triggerGameFinish() {
+    this.isGameCompleted = true;
+    this.updateCandyDisplay();
+    this.updateGoodyBoxUI();
+
+    if (window.halloweenAudio) {
+      window.halloweenAudio.playGrandLockUnlockedFanfare();
+    }
+    if (window.particleEngine) {
+      window.particleEngine.spawnCelebrationBurst();
+      setTimeout(() => window.particleEngine.spawnCelebrationBurst(), 600);
+    }
+
+    const victoryModal = document.getElementById('victory-modal');
+    if (victoryModal) {
+      victoryModal.style.display = 'flex';
+    }
+  }
+
+  restartGame() {
+    console.log("[Game] Restarting Halloween Magic Wand Game!");
+    this.currentLevelIndex = 0;
+    this.currentStepIndex = 0;
+    this.isGameCompleted = false;
+    this.revealedDigits = [false, false, false];
+    this.wandLevel = 1;
+    this.comboCount = 0;
+    this.addedIngredients = [];
+
+    // Reset recipe step counts to initial values
+    this.recipes.forEach(r => {
+      r.steps.forEach(s => {
+        if (s.type === 'ingredient') s.count = s.initialCount;
+        if (s.type === 'gesture') s.needed = s.initialNeeded;
+      });
+    });
+
+    const victoryModal = document.getElementById('victory-modal');
+    if (victoryModal) {
+      victoryModal.style.display = 'none';
+    }
+
+    if (window.halloweenAudio) {
+      window.halloweenAudio.playRestartSound();
+    }
+
+    this.renderCurrentRecipe();
+    this.updateCandyDisplay();
+    this.updateGoodyBoxUI();
+    this.updateWandLevelUI();
+
+    this.showFloatingFeedback("✨ Game Restarted! Level 1 Ready!");
   }
 
   // =========================================================================
-  // WAND LEVEL PROGRESSION (IDEA 2)
+  // WAND LEVEL PROGRESSION
   // =========================================================================
   checkWandLevelUp() {
     let newLevel = 1;
-    if (this.totalCandy >= 100) {
+    const revealedCount = this.revealedDigits.filter(Boolean).length;
+    if (revealedCount >= 3) {
       newLevel = 3; // Master Choco-Sorcerer
-    } else if (this.totalCandy >= 85) {
+    } else if (revealedCount >= 2) {
       newLevel = 2; // Candy Mage
     }
 
@@ -438,24 +522,108 @@ class CandyBrewGame {
     if (feedbackEl) {
       if (this.feedbackTimer) clearTimeout(this.feedbackTimer);
       feedbackEl.textContent = text;
-      feedbackEl.classList.remove('show');
+      feedbackEl.classList.remove('show', 'bust');
+      if (text.includes('BUST') || text.includes('❌')) {
+        feedbackEl.classList.add('bust');
+      }
       void feedbackEl.offsetWidth; // Reflow to restart animation
       feedbackEl.classList.add('show');
-      this.feedbackTimer = setTimeout(() => feedbackEl.classList.remove('show'), 2600);
+      this.feedbackTimer = setTimeout(() => feedbackEl.classList.remove('show', 'bust'), 2600);
     }
   }
 
   updateCandyDisplay() {
-    const candyPercentEl = document.getElementById('candy-percent-text');
-    const candyFillEl = document.getElementById('candy-progress-fill');
-    const candyFractionEl = document.getElementById('candy-fraction');
+    const activeBadgeEl = document.getElementById('active-level-badge');
+    const overallPctEl = document.getElementById('candy-percent-text');
+    const fractionEl = document.getElementById('candy-fraction');
 
-    if (candyPercentEl) candyPercentEl.textContent = `${this.totalCandy}%`;
-    if (candyFractionEl) candyFractionEl.textContent = `${this.totalCandy} / 100 Treats`;
-    
-    if (candyFillEl) {
-      const percentage = Math.min(100, this.totalCandy);
-      candyFillEl.style.width = `${percentage}%`;
+    const pcts = [
+      this.getLevelPercentage(0),
+      this.getLevelPercentage(1),
+      this.getLevelPercentage(2)
+    ];
+
+    for (let i = 1; i <= 3; i++) {
+      const fillEl = document.getElementById(`level-seg-fill-${i}`);
+      const pctEl = document.getElementById(`level-seg-pct-${i}`);
+      const pct = pcts[i - 1];
+
+      if (fillEl) fillEl.style.width = `${pct}%`;
+      if (pctEl) pctEl.textContent = `${pct}%`;
+    }
+
+    const currentLvlNum = Math.min(3, this.currentLevelIndex + 1);
+    const curPct = pcts[this.currentLevelIndex] !== undefined ? pcts[this.currentLevelIndex] : 100;
+
+    if (activeBadgeEl) {
+      if (this.isGameCompleted) {
+        activeBadgeEl.textContent = `👑 All 3 Levels Complete!`;
+      } else {
+        activeBadgeEl.textContent = `⭐ Level ${currentLvlNum} of 3`;
+      }
+    }
+
+    if (overallPctEl) {
+      if (this.isGameCompleted) {
+        overallPctEl.textContent = `🎉 Goody Box Code: 538`;
+      } else {
+        overallPctEl.textContent = `Level ${currentLvlNum}: ${curPct}% Complete`;
+      }
+    }
+
+    if (fractionEl) {
+      const finishedCount = this.revealedDigits.filter(Boolean).length;
+      fractionEl.textContent = `${finishedCount} / 3 Levels Finished`;
+    }
+  }
+
+  updateGoodyBoxUI() {
+    const statusBadgeEl = document.getElementById('goody-lock-status-badge');
+    const subtextEl = document.getElementById('goody-box-subtext');
+    const restartBtn = document.getElementById('btn-restart-game');
+
+    for (let i = 1; i <= 3; i++) {
+      const digitBox = document.getElementById(`lock-digit-${i}`);
+      const isRevealed = this.revealedDigits[i - 1];
+      const digitVal = this.unlockKey[i - 1];
+
+      if (digitBox) {
+        if (isRevealed) {
+          digitBox.className = 'lock-digit-box unlocked';
+          digitBox.innerHTML = `<span class="digit-icon">🔓</span><span class="digit-val">${digitVal}</span>`;
+        } else {
+          digitBox.className = 'lock-digit-box locked';
+          digitBox.innerHTML = `<span class="digit-icon">🔒</span><span class="digit-val">?</span>`;
+        }
+      }
+    }
+
+    const revealedCount = this.revealedDigits.filter(Boolean).length;
+
+    if (statusBadgeEl) {
+      if (this.isGameCompleted || revealedCount === 3) {
+        statusBadgeEl.className = 'goody-lock-status-badge unlocked';
+        statusBadgeEl.textContent = '🔓 UNLOCKED: 538';
+      } else {
+        statusBadgeEl.className = 'goody-lock-status-badge';
+        statusBadgeEl.textContent = `🔒 LOCKED (${revealedCount}/3 Levels)`;
+      }
+    }
+
+    if (subtextEl) {
+      if (this.isGameCompleted) {
+        subtextEl.textContent = '🎉 SECRET CODE REVEALED: 5-3-8! Use code to open Goody Box!';
+      } else if (revealedCount === 0) {
+        subtextEl.textContent = 'Complete Level 1 to reveal the 1st lock digit!';
+      } else if (revealedCount === 1) {
+        subtextEl.textContent = '✨ Level 1 Done! 1st Digit is 5. Complete Level 2 for Digit 2!';
+      } else if (revealedCount === 2) {
+        subtextEl.textContent = '✨ Level 2 Done! 2nd Digit is 3. Complete Level 3 for Final Digit!';
+      }
+    }
+
+    if (restartBtn) {
+      restartBtn.style.display = (this.isGameCompleted || revealedCount > 0) ? 'inline-block' : 'none';
     }
   }
 }

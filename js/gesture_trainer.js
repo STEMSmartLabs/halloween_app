@@ -7,7 +7,7 @@
 
 class GestureTrainer {
   constructor() {
-    this.storageKey = 'magic_wand_trained_gestures_v5';
+    this.storageKey = 'magic_wand_trained_gestures_v9';
     this.gestureSamples = []; // Array of { label, id, data: [ {x, y, z} ] }
     this.isRecording = false;
     this.recordingBuffer = [];
@@ -17,7 +17,7 @@ class GestureTrainer {
     // Recognition Parameters
     this.classifyFrequency = 200; // ms between checks
     this.distThreshold = 190; // Distance cutoff for match
-    this.minEnergyThreshold = 0.22; // Dynamic motion threshold to filter idle resting
+    this.minEnergyThreshold = 0.35; // Dynamic motion threshold to filter static holding/resting
     this.lastRecognizedGesture = 'none';
     this.lastRecognizedConfidence = 100;
 
@@ -76,90 +76,104 @@ class GestureTrainer {
       samples.push({ label: 'none', id: `predef_none_${s}`, data });
     }
 
-    // 1. STIR CAULDRON (Smooth circular rotation in X/Y plane)
-    for (let s = 0; s < 4; s++) {
-      const data = [];
+    // 1. STIR CAULDRON (Clockwise & Counter-Clockwise Circles in X/Y plane)
+    for (let s = 0; s < 3; s++) {
+      const dataCW = [];
+      const dataCCW = [];
       const phaseOffset = (s * Math.PI) / 2;
       for (let i = 0; i < sampleCount; i++) {
         const t = (i / sampleCount) * Math.PI * 2 * 1.5 + phaseOffset;
-        data.push({
+        // Clockwise: Top -> Right -> Bottom -> Left
+        dataCW.push({
           x: Math.sin(t) * 0.75 + (Math.random() - 0.5) * 0.04,
-          y: Math.cos(t) * 0.75 + (Math.random() - 0.5) * 0.04,
+          y: -Math.cos(t) * 0.75 + (Math.random() - 0.5) * 0.04,
+          z: 0.95 + (Math.random() - 0.5) * 0.06
+        });
+        // Counter-Clockwise: Top -> Left -> Bottom -> Right
+        dataCCW.push({
+          x: -Math.sin(t) * 0.75 + (Math.random() - 0.5) * 0.04,
+          y: -Math.cos(t) * 0.75 + (Math.random() - 0.5) * 0.04,
           z: 0.95 + (Math.random() - 0.5) * 0.06
         });
       }
-      samples.push({ label: 'stir', id: `predef_stir_${s}`, data });
+      samples.push({ label: 'stir', id: `predef_stir_cw_${s}`, data: dataCW });
+      samples.push({ label: 'stir', id: `predef_stir_ccw_${s}`, data: dataCCW });
     }
 
-    // 2. CANDY THRUST (Sharp forward jab / poke along Z-axis)
-    for (let s = 0; s < 4; s++) {
-      const data = [];
-      const peakPos = 0.3 + s * 0.06;
-      for (let i = 0; i < sampleCount; i++) {
-        const progress = i / sampleCount;
-        let impulse = 0;
-        if (progress > peakPos && progress < peakPos + 0.28) {
-          impulse = Math.sin(((progress - peakPos) / 0.28) * Math.PI) * 1.4;
-        }
-        data.push({
-          x: (Math.random() - 0.5) * 0.06,
-          y: 0.15 + (Math.random() - 0.5) * 0.06,
-          z: 0.85 + impulse + (Math.random() - 0.5) * 0.05
-        });
-      }
-      samples.push({ label: 'thrust', id: `predef_thrust_${s}`, data });
-    }
-
-    // 3. TOSS / FLICK (Sharp upward & forward wrist flick)
-    for (let s = 0; s < 4; s++) {
-      const data = [];
-      const peakPos = 0.3 + s * 0.08;
-      for (let i = 0; i < sampleCount; i++) {
-        const progress = i / sampleCount;
-        let impulse = 0;
-        if (progress > peakPos && progress < peakPos + 0.3) {
-          impulse = Math.sin(((progress - peakPos) / 0.3) * Math.PI) * 1.3;
-        }
-        data.push({
-          x: (Math.random() - 0.5) * 0.08,
-          y: 0.2 + impulse * 1.2 + (Math.random() - 0.5) * 0.05,
-          z: 0.9 - impulse * 0.7 + (Math.random() - 0.5) * 0.05
-        });
-      }
-      samples.push({ label: 'toss', id: `predef_toss_${s}`, data });
-    }
-
-    // 4. DOWNWARD SLASH (Sharp top-to-bottom chop)
+    // 2. UP: 🍊 ORANGE (Sharp upward flick/swipe along -Y axis in device coordinates)
     for (let s = 0; s < 4; s++) {
       const data = [];
       const peakPos = 0.28 + s * 0.08;
       for (let i = 0; i < sampleCount; i++) {
         const progress = i / sampleCount;
         let impulse = 0;
-        if (progress > peakPos && progress < peakPos + 0.32) {
-          impulse = Math.sin(((progress - peakPos) / 0.32) * Math.PI) * 1.5;
+        if (progress > peakPos && progress < peakPos + 0.3) {
+          impulse = Math.sin(((progress - peakPos) / 0.3) * Math.PI) * 1.5;
         }
         data.push({
-          x: (Math.random() - 0.5) * 0.08,
+          x: (Math.random() - 0.5) * 0.06,
           y: 0.85 - impulse * 1.7 + (Math.random() - 0.5) * 0.05,
-          z: 0.2 - impulse * 0.4 + (Math.random() - 0.5) * 0.06
+          z: 0.3 - impulse * 0.3 + (Math.random() - 0.5) * 0.05
         });
       }
-      samples.push({ label: 'slash', id: `predef_slash_${s}`, data });
+      samples.push({ label: 'up', id: `predef_up_${s}`, data });
     }
 
-    // 5. SHAKE / BUBBLE (Rapid alternating oscillation)
+    // 3. DOWN: 🎃 PUMPKIN (Sharp downward slash/swipe along +Y axis in device coordinates)
     for (let s = 0; s < 4; s++) {
       const data = [];
+      const peakPos = 0.28 + s * 0.08;
       for (let i = 0; i < sampleCount; i++) {
-        const t = (i / sampleCount) * Math.PI * (6 + s * 2);
+        const progress = i / sampleCount;
+        let impulse = 0;
+        if (progress > peakPos && progress < peakPos + 0.3) {
+          impulse = Math.sin(((progress - peakPos) / 0.3) * Math.PI) * 1.5;
+        }
         data.push({
-          x: Math.sin(t) * 1.2 + (Math.random() - 0.5) * 0.08,
-          y: 0.6 + Math.cos(t * 0.5) * 0.25,
-          z: 0.6 + (Math.random() - 0.5) * 0.08
+          x: (Math.random() - 0.5) * 0.06,
+          y: 0.2 + impulse * 1.6 + (Math.random() - 0.5) * 0.05,
+          z: 0.9 - impulse * 0.5 + (Math.random() - 0.5) * 0.05
         });
       }
-      samples.push({ label: 'shake', id: `predef_shake_${s}`, data });
+      samples.push({ label: 'down', id: `predef_down_${s}`, data });
+    }
+
+    // 4. LEFT: 🍎 APPLE (Sharp swipe/flick to the left along -X axis)
+    for (let s = 0; s < 4; s++) {
+      const data = [];
+      const peakPos = 0.28 + s * 0.08;
+      for (let i = 0; i < sampleCount; i++) {
+        const progress = i / sampleCount;
+        let impulse = 0;
+        if (progress > peakPos && progress < peakPos + 0.3) {
+          impulse = Math.sin(((progress - peakPos) / 0.3) * Math.PI) * 1.5;
+        }
+        data.push({
+          x: -impulse * 1.6 + (Math.random() - 0.5) * 0.06,
+          y: 0.1 + (Math.random() - 0.5) * 0.06,
+          z: 0.9 + (Math.random() - 0.5) * 0.05
+        });
+      }
+      samples.push({ label: 'left', id: `predef_left_${s}`, data });
+    }
+
+    // 5. RIGHT: 🍓 STRAWBERRY (Sharp swipe/flick to the right along +X axis)
+    for (let s = 0; s < 4; s++) {
+      const data = [];
+      const peakPos = 0.28 + s * 0.08;
+      for (let i = 0; i < sampleCount; i++) {
+        const progress = i / sampleCount;
+        let impulse = 0;
+        if (progress > peakPos && progress < peakPos + 0.3) {
+          impulse = Math.sin(((progress - peakPos) / 0.3) * Math.PI) * 1.5;
+        }
+        data.push({
+          x: impulse * 1.6 + (Math.random() - 0.5) * 0.06,
+          y: 0.1 + (Math.random() - 0.5) * 0.06,
+          z: 0.9 + (Math.random() - 0.5) * 0.05
+        });
+      }
+      samples.push({ label: 'right', id: `predef_right_${s}`, data });
     }
 
     return samples;

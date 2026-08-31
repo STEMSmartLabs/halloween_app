@@ -436,14 +436,14 @@ class HalloweenParticleEngine {
   }
 
   // =========================================================================
-  // 5. 3D TUMBLING INGREDIENT BALLISTICS & CROWN SPLASH
+  // 5. INGREDIENT THROW ANIMATION & HIGH-VISCOSITY SPLASH (IDEA 1)
   // =========================================================================
-  throwIngredient(fromEl, emoji, targetColor = null) {
+  throwIngredient(fromEl, emoji, targetColor = null, isValid = true) {
     this.updateCauldronCenter();
     let startX = 140;
     let startY = 350;
 
-    if (fromEl) {
+    if (fromEl && typeof fromEl.getBoundingClientRect === 'function') {
       const rect = fromEl.getBoundingClientRect();
       startX = rect.left + rect.width / 2;
       startY = rect.top + rect.height / 2;
@@ -451,51 +451,101 @@ class HalloweenParticleEngine {
 
     const tColor = targetColor || this.liquidColor;
 
+    // Cap simultaneous flying items to prevent CPU lag
+    if (this.flyingIngredients.length >= 3) {
+      this.flyingIngredients.shift();
+    }
+
     this.flyingIngredients.push({
       x: startX,
       y: startY,
       startX,
       startY,
-      targetX: this.cauldronCenter.x + (Math.random() - 0.5) * 50,
+      targetX: this.cauldronCenter.x + (Math.random() - 0.5) * 40,
       targetY: this.cauldronCenter.y,
       progress: 0,
-      speed: 0.028,
+      speed: 0.038, // Fast, punchy arc
       emoji,
       color: tColor,
-      arcHeight: 140 + Math.random() * 50,
+      arcHeight: 120 + Math.random() * 30,
       rotation: 0,
       rotSpeed: (Math.random() - 0.5) * 0.35,
-      scale: 1.0
+      scale: 1.0,
+      isValid: isValid !== false
     });
   }
 
-  triggerCrownSplash(x, y, color) {
-    this.disturbFluid(Math.atan2(y - this.cauldronCenter.y, x - this.cauldronCenter.x), 16);
+  triggerMidairBurst(x, y, emoji, color) {
+    if (window.halloweenAudio) {
+      window.halloweenAudio.playInvalidBust();
+    }
 
-    for (let i = 0; i < 18; i++) {
-      const angle = (i / 18) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
-      const speed = Math.random() * 6 + 4;
+    this.screenShakeTrauma = 0.22;
+
+    // 1. Pop Shockwave
+    this.shockwaves.push({
+      x,
+      y,
+      radius: 6,
+      maxRadius: 52,
+      color: '#ef4444',
+      alpha: 0.95,
+      decay: 0.05
+    });
+
+    // 2. Poof Spark & Smoke Burst
+    for (let j = 0; j < 12; j++) {
+      const angle = (j / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+      const speed = Math.random() * 5 + 3;
       this.droplets.push({
-        x: x + Math.cos(angle) * 10,
+        x: x + Math.cos(angle) * 6,
+        y: y + Math.sin(angle) * 6,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.2,
+        gravity: 0.22,
+        radius: Math.random() * 3.5 + 2,
+        color: j % 2 === 0 ? '#ef4444' : '#f97316',
+        alpha: 1.0,
+        decay: 0.045
+      });
+    }
+  }
+
+  triggerCrownSplash(x, y, color) {
+    this.disturbFluid(Math.atan2(y - this.cauldronCenter.y, x - this.cauldronCenter.x), 12);
+
+    if (this.droplets.length > 25) {
+      this.droplets.splice(0, this.droplets.length - 20);
+    }
+
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+      const speed = Math.random() * 5 + 3;
+      this.droplets.push({
+        x: x + Math.cos(angle) * 8,
         y: y + Math.sin(angle) * 4,
-        vx: Math.cos(angle) * speed * 0.7,
-        vy: -Math.random() * 5.5 - 3.5,
+        vx: Math.cos(angle) * speed * 0.6,
+        vy: -Math.random() * 4.5 - 2.5,
         gravity: 0.32,
-        radius: Math.random() * 3.5 + 1.8,
+        radius: Math.random() * 3 + 1.5,
         color,
         alpha: 1.0,
-        decay: 0.025
+        decay: 0.035
       });
+    }
+
+    if (this.shockwaves.length > 4) {
+      this.shockwaves.shift();
     }
 
     this.shockwaves.push({
       x,
       y,
       radius: 5,
-      maxRadius: 65,
+      maxRadius: 55,
       color,
-      alpha: 0.9,
-      decay: 0.03
+      alpha: 0.85,
+      decay: 0.04
     });
   }
 
@@ -507,45 +557,39 @@ class HalloweenParticleEngine {
 
     switch (gestureId) {
       case 1: // Stir / Circle
-        this.vortexAngularSpeed = 0.22;
-        for (let i = 0; i < 12; i++) {
-          this.disturbFluid((i / 12) * Math.PI * 2, 9);
+        this.vortexAngularSpeed = 0.25;
+        for (let i = 0; i < 14; i++) {
+          this.disturbFluid((i / 14) * Math.PI * 2, 10);
         }
         if (window.halloweenAudio) window.halloweenAudio.playCauldronStir();
         break;
 
-      case 2: // Flick / Toss
-        this.spawnCauldronBubble('#facc15');
+      case 2: // Up: 🍊 Orange
+        this.fireIntensity = 2.5;
+        this.spawnCauldronBubble('#f97316');
+        this.screenShakeTrauma = 0.25;
+        if (window.halloweenAudio) window.halloweenAudio.playIngredientToss();
+        break;
+
+      case 3: // Down: 🎃 Pumpkin
         this.spawnCauldronBubble('#ff7518');
-        break;
-
-      case 3: // Shake / Bubble
-        for (let i = 0; i < 16; i++) {
-          this.spawnCauldronBubble();
-        }
-        this.screenShakeTrauma = 0.4;
-        if (window.halloweenAudio) window.halloweenAudio.playBubbleFroth();
-        break;
-
-      case 4: // Vertical Slash / Fire Ignite
-        this.fireIntensity = 3.2;
-        this.screenShakeTrauma = 0.5;
-        this.shockwaves.push({
-          x: this.cauldronCenter.x,
-          y: this.cauldronCenter.y + 140,
-          radius: 10,
-          maxRadius: 160,
-          color: '#ff7518',
-          alpha: 1.0,
-          decay: 0.025
-        });
+        this.spawnCauldronBubble('#facc15');
+        this.screenShakeTrauma = 0.35;
         if (window.halloweenAudio) window.halloweenAudio.playFlameIgnite();
         break;
 
-      case 5: // Horizontal Wave
-        for (let i = 0; i < 16; i++) {
-          this.spawnSteam();
-        }
+      case 4: // Left: 🍎 Apple
+        this.spawnCauldronBubble('#ef4444');
+        this.spawnCauldronBubble('#22c55e');
+        this.screenShakeTrauma = 0.25;
+        if (window.halloweenAudio) window.halloweenAudio.playMistSweep();
+        break;
+
+      case 5: // Right: 🍓 Strawberry
+        this.spawnCauldronBubble('#f43f5e');
+        this.spawnCauldronBubble('#ec4899');
+        this.screenShakeTrauma = 0.25;
+        if (window.halloweenAudio) window.halloweenAudio.playSparkleChime();
         break;
 
       case 6: // Spell Thrust / Blast
@@ -561,6 +605,46 @@ class HalloweenParticleEngine {
         });
         if (window.halloweenAudio) window.halloweenAudio.playSpellCast();
         break;
+    }
+  }
+
+  triggerInvalidBust(fromEl = null) {
+    this.updateCauldronCenter();
+    let x = this.cauldronCenter.x;
+    let y = this.cauldronCenter.y - 30;
+
+    if (fromEl && typeof fromEl.getBoundingClientRect === 'function') {
+      const rect = fromEl.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+
+    this.screenShakeTrauma = 0.3;
+    
+    // Red Fizzle Shockwave
+    this.shockwaves.push({
+      x,
+      y,
+      radius: 5,
+      maxRadius: 65,
+      color: '#ef4444',
+      alpha: 0.9,
+      decay: 0.045
+    });
+
+    // Gray Smoke/Red Fizzle Droplets
+    for (let i = 0; i < 6; i++) {
+      this.droplets.push({
+        x: x + (Math.random() - 0.5) * 20,
+        y: y + (Math.random() - 0.5) * 15,
+        vx: (Math.random() - 0.5) * 3,
+        vy: -Math.random() * 3.5 - 1.5,
+        gravity: 0.2,
+        radius: Math.random() * 3 + 2,
+        color: i % 2 === 0 ? '#ef4444' : '#64748b',
+        alpha: 0.9,
+        decay: 0.04
+      });
     }
   }
 
@@ -1091,6 +1175,13 @@ class HalloweenParticleEngine {
         alpha: 0.8,
         decay: 0.04
       });
+
+      // Mid-Air Burst for Invalid/Wrong Ingredient
+      if (!item.isValid && item.progress >= 0.48) {
+        this.triggerMidairBurst(item.x, item.y, item.emoji, item.color);
+        this.flyingIngredients.splice(i, 1);
+        continue;
+      }
 
       if (item.progress >= 1.0) {
         if (window.halloweenAudio) window.halloweenAudio.playIngredientToss();

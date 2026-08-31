@@ -83,13 +83,16 @@
         </div>
       </div>
 
-      <!-- Right: Trick-Or-Treat Candy Pail Tracker -->
+      <!-- Right: Trick-Or-Treat Candy Pail Tracker (3 Levels) -->
       <div class="candy-pail-card">
-        <div class="candy-pail-title">TRICK-OR-TREAT CANDY PAIL</div>
+        <div class="candy-pail-title-row">
+          <div class="candy-pail-title">TRICK-OR-TREAT CANDY PAIL</div>
+          <div class="level-indicator-badge" id="active-level-badge">⭐ Level 1 of 3</div>
+        </div>
         <div class="candy-pail-bar-row">
           <!-- Jack-o'-Lantern Bucket Icon -->
           <div class="pail-pumpkin-icon">
-            <svg viewBox="0 0 100 90" width="52" height="46">
+            <svg viewBox="0 0 100 90" width="48" height="42">
               <defs>
                 <radialGradient id="pumpkin-grad" cx="40%" cy="35%" r="65%">
                   <stop offset="0%" stop-color="#ffb703"/>
@@ -112,19 +115,39 @@
             </svg>
           </div>
 
-          <!-- Glossy Progress Bar with Floating Candy Sprites -->
-          <div class="candy-bar-track">
-            <div class="candy-bar-fill" id="candy-progress-fill" style="width: 75%;">
-              <div class="candy-sprite-row">
-                <span class="candy-bit">🍬</span>
-                <span class="candy-bit">🍭</span>
-                <span class="candy-bit">🍬</span>
+          <!-- 3-Level Segmented Progress Bars -->
+          <div class="level-progress-tracker-group">
+            <div class="level-segments-row">
+              <div class="level-seg-item" id="level-seg-1">
+                <div class="level-seg-label">Lvl 1</div>
+                <div class="level-seg-track">
+                  <div class="level-seg-fill" id="level-seg-fill-1" style="width: 0%;"></div>
+                </div>
+                <div class="level-seg-pct" id="level-seg-pct-1">0%</div>
+              </div>
+
+              <div class="level-seg-item" id="level-seg-2">
+                <div class="level-seg-label">Lvl 2</div>
+                <div class="level-seg-track">
+                  <div class="level-seg-fill" id="level-seg-fill-2" style="width: 0%;"></div>
+                </div>
+                <div class="level-seg-pct" id="level-seg-pct-2">0%</div>
+              </div>
+
+              <div class="level-seg-item" id="level-seg-3">
+                <div class="level-seg-label">Lvl 3</div>
+                <div class="level-seg-track">
+                  <div class="level-seg-fill" id="level-seg-fill-3" style="width: 0%;"></div>
+                </div>
+                <div class="level-seg-pct" id="level-seg-pct-3">0%</div>
               </div>
             </div>
-            <div class="candy-bar-percent" id="candy-percent-text">75%</div>
           </div>
         </div>
-        <div class="candy-fraction-label" id="candy-fraction">75 / 100 Treats</div>
+        <div class="candy-bottom-info-row">
+          <div class="candy-overall-pct" id="candy-percent-text">Level 1: 0% Complete</div>
+          <div class="candy-fraction-label" id="candy-fraction">0 / 3 Levels Finished</div>
+        </div>
       </div>
     </header>
 
@@ -235,14 +258,18 @@
 
           <div class="wand-info-block">
             <span class="wand-model-label">SPARKLE WAND:</span>
-            <span class="wand-conn-status" id="wand-status-text">CONNECTED (Active)</span>
+            <span class="wand-conn-status" id="wand-status-text">Click to Connect</span>
           </div>
 
-          <div class="wand-battery-gauge">
-            <div class="battery-pill-track">
-              <div class="battery-pill-fill" id="battery-level-fill" style="width: 85%;"></div>
+          <!-- Bluetooth Signal Strength Indicator -->
+          <div class="wand-signal-gauge level-0" id="wand-signal-gauge" title="Bluetooth Signal Strength">
+            <div class="signal-bars-icon" id="signal-bars-icon">
+              <span class="sig-bar bar-1"></span>
+              <span class="sig-bar bar-2"></span>
+              <span class="sig-bar bar-3"></span>
+              <span class="sig-bar bar-4"></span>
             </div>
-            <span class="battery-text" id="battery-percentage-text">85%</span>
+            <span class="signal-text" id="signal-text">SIGNAL: --</span>
           </div>
 
           <div class="wand-level-tag lvl-1" id="wand-level-badge">⭐ Lvl 1: Apprentice</div>
@@ -258,44 +285,40 @@
         <div class="section-title-neon">INGREDIENTS TO ADD:</div>
 
         <div class="ingredients-matrix">
-          <!-- 1. Apple (Purple Glowing Aura) -->
-          <div class="ingredient-card" data-ingredient="apple" title="Toss Apple">
-            <div class="ing-badge badge-purple">
+          <!-- 1. Apple (Move Left: ⬅️) -->
+          <div class="ingredient-card" data-ingredient="apple" title="Move Left (⬅️) for Apple">
+            <div class="ing-badge badge-apple">
               <span class="ing-emoji">🍎</span>
             </div>
+            <span class="ing-dir">⬅️ LEFT</span>
             <span class="ing-count">x2</span>
           </div>
 
-          <!-- 2. Grapes (Blue Glowing Aura) -->
-          <div class="ingredient-card" data-ingredient="grapes" title="Toss Grapes">
-            <div class="ing-badge badge-blue">
-              <span class="ing-emoji">🍇</span>
+          <!-- 2. Strawberry (Move Right: ➡️) -->
+          <div class="ingredient-card" data-ingredient="strawberry" title="Move Right (➡️) for Strawberry">
+            <div class="ing-badge badge-strawberry">
+              <span class="ing-emoji">🍓</span>
             </div>
-            <span class="ing-count">x3</span>
+            <span class="ing-dir">➡️ RIGHT</span>
+            <span class="ing-count">x2</span>
           </div>
 
-          <!-- 3. Candy Corn (Amber Glowing Aura) -->
-          <div class="ingredient-card" data-ingredient="candycorn" title="Toss Candy Corn">
+          <!-- 3. Orange (Move Up: ⬆️) -->
+          <div class="ingredient-card" data-ingredient="orange" title="Move Up (⬆️) for Orange">
             <div class="ing-badge badge-orange">
-              <span class="ing-emoji">🌽</span>
+              <span class="ing-emoji">🍊</span>
             </div>
-            <span class="ing-count">x5</span>
+            <span class="ing-dir">⬆️ UP</span>
+            <span class="ing-count">x2</span>
           </div>
 
-          <!-- 4. Carrot (Green Glowing Aura) -->
-          <div class="ingredient-card" data-ingredient="carrot" title="Toss Carrot">
-            <div class="ing-badge badge-green">
-              <span class="ing-emoji">🥕</span>
-            </div>
-            <span class="ing-count">x1</span>
-          </div>
-
-          <!-- 5. Mini Pumpkin (Golden Orange Glowing Aura) -->
-          <div class="ingredient-card span-full" data-ingredient="pumpkin" title="Toss Mini Pumpkin">
+          <!-- 4. Pumpkin (Move Down: ⬇️) -->
+          <div class="ingredient-card" data-ingredient="pumpkin" title="Move Down (⬇️) for Pumpkin">
             <div class="ing-badge badge-pumpkin">
               <span class="ing-emoji">🎃</span>
             </div>
-            <span class="ing-count">x4</span>
+            <span class="ing-dir">⬇️ DOWN</span>
+            <span class="ing-count">x1</span>
           </div>
         </div>
       </section>
@@ -526,39 +549,50 @@
           </div>
         </div>
 
-        <!-- Brew Status Card with Ingredient Row & Indicator Arrow -->
-        <div class="brew-status-container">
-          <!-- Top Row of Target Ingredient Icons -->
-          <div class="target-ingredients-row">
-            <span class="target-ing-icon glow-purple">🍎</span>
-            <span class="target-ing-icon glow-blue">🍇</span>
-            <span class="target-ing-icon glow-orange">🌽</span>
-            <span class="target-ing-icon glow-green">🥕</span>
-            <span class="target-ing-icon glow-pumpkin">🎃</span>
-          </div>
-
-          <!-- 5 Beveled Added Ingredient Slots with Bouncing Indicator -->
-          <div class="added-ingredients-slots" id="added-ingredients-slots">
-            <!-- Dynamically populated and indicated by CandyBrewGame -->
-            <div class="slot active-indicator-slot">
-              <span class="slot-item">🍎</span>
-              <div class="bouncing-green-arrow">⬇️</div>
-            </div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
+        <!-- Surprise Goody Box 3-Digit Secret Lock Card -->
+        <div class="goody-box-container" id="goody-box-container">
+          <div class="goody-box-header">
+            <div class="goody-box-title">🎁 SURPRISE GOODY BOX</div>
+            <div class="goody-lock-status-badge" id="goody-lock-status-badge">🔒 LOCKED</div>
           </div>
           
-          <div class="brew-status-text-block">
-            <div class="brew-status-header-text">
-              BREW STATUS: <span class="acting-potently-glow">ACTING POTENTLY!</span>
+          <div class="goody-lock-subtitle">3-Digit Secret Code (Reveal on each level):</div>
+
+          <div class="goody-lock-key-display">
+            <!-- Digit 1 (Level 1) -->
+            <div class="lock-tumbler-slot" id="lock-slot-1">
+              <div class="lock-level-tag">LEVEL 1</div>
+              <div class="lock-digit-box locked" id="lock-digit-1">
+                <span class="digit-icon">🔒</span>
+                <span class="digit-val">?</span>
+              </div>
+              <div class="lock-recipe-name">🎃 Pumpkin Brew</div>
             </div>
-            <div class="status-effects-list" id="status-effects">
-              <div class="effect-line">Current effects: Candy munky</div>
-              <div class="effect-line">Current effects: Swom tacore</div>
-              <div class="effect-line">Current effects: Irraciamis</div>
+
+            <!-- Digit 2 (Level 2) -->
+            <div class="lock-tumbler-slot" id="lock-slot-2">
+              <div class="lock-level-tag">LEVEL 2</div>
+              <div class="lock-digit-box locked" id="lock-digit-2">
+                <span class="digit-icon">🔒</span>
+                <span class="digit-val">?</span>
+              </div>
+              <div class="lock-recipe-name">🍓 Berry Potion</div>
             </div>
+
+            <!-- Digit 3 (Level 3) -->
+            <div class="lock-tumbler-slot" id="lock-slot-3">
+              <div class="lock-level-tag">LEVEL 3</div>
+              <div class="lock-digit-box locked" id="lock-digit-3">
+                <span class="digit-icon">🔒</span>
+                <span class="digit-val">?</span>
+              </div>
+              <div class="lock-recipe-name">🍫 Master Brew</div>
+            </div>
+          </div>
+
+          <div class="goody-box-info-row">
+            <div class="goody-box-subtext" id="goody-box-subtext">Complete Level 1 to reveal the 1st lock digit!</div>
+            <button class="btn-restart-game" id="btn-restart-game" title="Restart Game" style="display: none;">🔄 Restart Game</button>
           </div>
         </div>
 
@@ -570,12 +604,11 @@
          ==================================================================== -->
     <footer class="virtual-wand-bar">
       <span class="virtual-wand-title">🪄 Virtual Wand:</span>
-      <button class="quick-gesture-btn" data-gesture="1" data-name="Stir Circle">🔄 Stir <span class="key-hint">C</span></button>
-      <button class="quick-gesture-btn" data-gesture="2" data-name="Flick Toss">🪄 Toss <span class="key-hint">F</span></button>
-      <button class="quick-gesture-btn" data-gesture="3" data-name="Shake Bubble">🫧 Bubble <span class="key-hint">S</span></button>
-      <button class="quick-gesture-btn" data-gesture="4" data-name="Vertical Slash">🔥 Slash <span class="key-hint">V</span></button>
-      <button class="quick-gesture-btn" data-gesture="5" data-name="Horizontal Wave">💨 Wave <span class="key-hint">W</span></button>
-      <button class="quick-gesture-btn" data-gesture="6" data-name="Spell Thrust">⚡ Thrust <span class="key-hint">T</span></button>
+      <button class="quick-gesture-btn" data-gesture="1" data-name="Circle Stir">🔄 Stir (Circle) <span class="key-hint">C</span></button>
+      <button class="quick-gesture-btn" data-gesture="2" data-name="Up Orange">🍊 Orange (Up) <span class="key-hint">U</span></button>
+      <button class="quick-gesture-btn" data-gesture="3" data-name="Down Pumpkin">🎃 Pumpkin (Down) <span class="key-hint">D</span></button>
+      <button class="quick-gesture-btn" data-gesture="4" data-name="Left Apple">🍎 Apple (Left) <span class="key-hint">L</span></button>
+      <button class="quick-gesture-btn" data-gesture="5" data-name="Right Strawberry">🍓 Strawberry (Right) <span class="key-hint">R</span></button>
     </footer>
   </div>
 
@@ -607,50 +640,50 @@
           <div class="tg-icon">🔄</div>
           <div class="tg-info">
             <div class="tg-name">Stir Cauldron</div>
-            <div class="tg-desc">Circle wand in the air</div>
+            <div class="tg-desc">Circle wand in the air (🔄)</div>
             <div class="tg-samples" id="samples-count-stir">3 Predefined Samples</div>
           </div>
           <button class="record-gesture-btn" data-gesture="stir">⏺️ Train</button>
         </div>
 
-        <div class="trainer-gesture-card" data-gesture="toss">
-          <div class="tg-icon">🪄</div>
+        <div class="trainer-gesture-card" data-gesture="up">
+          <div class="tg-icon">🍊</div>
           <div class="tg-info">
-            <div class="tg-name">Toss / Flick</div>
-            <div class="tg-desc">Quick wrist snap forward</div>
-            <div class="tg-samples" id="samples-count-toss">3 Predefined Samples</div>
+            <div class="tg-name">Orange (Up)</div>
+            <div class="tg-desc">Move / Flick Wand Up (⬆️)</div>
+            <div class="tg-samples" id="samples-count-up">3 Predefined Samples</div>
           </div>
-          <button class="record-gesture-btn" data-gesture="toss">⏺️ Train</button>
+          <button class="record-gesture-btn" data-gesture="up">⏺️ Train</button>
         </div>
 
-        <div class="trainer-gesture-card" data-gesture="slash">
-          <div class="tg-icon">🔥</div>
+        <div class="trainer-gesture-card" data-gesture="down">
+          <div class="tg-icon">🎃</div>
           <div class="tg-info">
-            <div class="tg-name">Downward Slash</div>
-            <div class="tg-desc">Chop downward vertically</div>
-            <div class="tg-samples" id="samples-count-slash">3 Predefined Samples</div>
+            <div class="tg-name">Pumpkin (Down)</div>
+            <div class="tg-desc">Move / Slash Wand Down (⬇️)</div>
+            <div class="tg-samples" id="samples-count-down">3 Predefined Samples</div>
           </div>
-          <button class="record-gesture-btn" data-gesture="slash">⏺️ Train</button>
+          <button class="record-gesture-btn" data-gesture="down">⏺️ Train</button>
         </div>
 
-        <div class="trainer-gesture-card" data-gesture="shake">
-          <div class="tg-icon">🫧</div>
+        <div class="trainer-gesture-card" data-gesture="left">
+          <div class="tg-icon">🍎</div>
           <div class="tg-info">
-            <div class="tg-name">Shake / Bubble</div>
-            <div class="tg-desc">Vibrate wand quickly</div>
-            <div class="tg-samples" id="samples-count-shake">3 Predefined Samples</div>
+            <div class="tg-name">Apple (Left)</div>
+            <div class="tg-desc">Move / Swipe Wand Left (⬅️)</div>
+            <div class="tg-samples" id="samples-count-left">3 Predefined Samples</div>
           </div>
-          <button class="record-gesture-btn" data-gesture="shake">⏺️ Train</button>
+          <button class="record-gesture-btn" data-gesture="left">⏺️ Train</button>
         </div>
 
-        <div class="trainer-gesture-card" data-gesture="thrust">
-          <div class="tg-icon">⚡</div>
+        <div class="trainer-gesture-card" data-gesture="right">
+          <div class="tg-icon">🍓</div>
           <div class="tg-info">
-            <div class="tg-name">Candy Thrust</div>
-            <div class="tg-desc">Jab / Poke directly forward</div>
-            <div class="tg-samples" id="samples-count-thrust">3 Predefined Samples</div>
+            <div class="tg-name">Strawberry (Right)</div>
+            <div class="tg-desc">Move / Swipe Wand Right (➡️)</div>
+            <div class="tg-samples" id="samples-count-right">3 Predefined Samples</div>
           </div>
-          <button class="record-gesture-btn" data-gesture="thrust">⏺️ Train</button>
+          <button class="record-gesture-btn" data-gesture="right">⏺️ Train</button>
         </div>
       </div>
 
@@ -663,6 +696,41 @@
       <div class="trainer-footer">
         <button class="btn-trainer-reset" id="reset-trainer-btn">🔄 Reset to Defaults</button>
         <button class="btn-trainer-done" id="done-trainer-btn">✨ Done Training</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       5. VICTORY FINISH MODAL (SURPRISE GOODY BOX UNLOCKED: 538)
+       ==================================================================== -->
+  <div class="victory-modal-backdrop" id="victory-modal" style="display: none;">
+    <div class="victory-modal-content">
+      <div class="victory-chest-anim">🎁</div>
+      <div class="victory-badge">🎉 ALL 3 LEVELS COMPLETED! 🎉</div>
+      <h1 class="victory-title">SURPRISE GOODY BOX UNLOCKED!</h1>
+      <p class="victory-desc">You mastered the Halloween Wand Spells and completed every brew recipe!</p>
+      
+      <div class="victory-code-card">
+        <div class="victory-code-header">🔐 YOUR 3-DIGIT SECRET UNLOCK CODE:</div>
+        <div class="victory-code-digits">
+          <div class="v-digit-box">
+            <span class="v-digit-num">5</span>
+            <span class="v-digit-sub">Level 1</span>
+          </div>
+          <div class="v-digit-box">
+            <span class="v-digit-num">3</span>
+            <span class="v-digit-sub">Level 2</span>
+          </div>
+          <div class="v-digit-box">
+            <span class="v-digit-num">8</span>
+            <span class="v-digit-sub">Level 3</span>
+          </div>
+        </div>
+        <div class="victory-code-footer">Use combination <strong>5 - 3 - 8</strong> to open your Goody Box!</div>
+      </div>
+
+      <div class="victory-actions">
+        <button class="btn-victory-restart" id="btn-victory-restart">🔄 Play Again / Restart Game</button>
       </div>
     </div>
   </div>

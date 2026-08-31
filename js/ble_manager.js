@@ -25,7 +25,7 @@ class BLEWandManager {
     this.mbLedChar = null;
 
     this.isConnected = false;
-    this.batteryLevel = 100;
+    this.batteryLevel = null;
     this.deviceName = 'Not Connected';
 
     // 1. Custom Nordic nRF51822 Wand UUIDs
@@ -49,12 +49,26 @@ class BLEWandManager {
     this.MB_LED_MATRIX_CHAR = 'e95d7b77-251d-470a-a062-fa1922dfa9a8';
     this.MB_LED_TEXT_CHAR = 'e95d93ee-251d-470a-a062-fa1922dfa9a8';
 
+    this.MB_EVENT_SERVICE = 'e95d93af-251d-470a-a062-fa1922dfa9a8';
+    this.MB_EVENT_CHAR = 'e95d9775-251d-470a-a062-fa1922dfa9a8';
+    this.MB_CLIENT_REQ_CHAR = 'e95d23c4-251d-470a-a062-fa1922dfa9a8';
+
+    this.MB_UART_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    this.MB_UART_TX_CHAR = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+    this.MB_UART_RX_CHAR = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+
+    // Real-Time Signal Quality Tracking
+    this.signalLevel = 0;
+    this.lastPacketTime = 0;
+    this.lastSignalEmit = 0;
+
     // Event Callbacks
     this.listeners = {
       connection: [],
       gesture: [],
       accel: [],
-      battery: []
+      battery: [],
+      signal: []
     };
   }
 
@@ -99,9 +113,12 @@ class BLEWandManager {
         optionalServices: [
           this.SERVICE_UUID,
           this.BATTERY_SERVICE_UUID,
+          '0000180f-0000-1000-8000-00805f9b34fb',
           this.MB_ACCEL_SERVICE,
           this.MB_BUTTON_SERVICE,
-          this.MB_LED_SERVICE
+          this.MB_LED_SERVICE,
+          this.MB_EVENT_SERVICE,
+          this.MB_UART_SERVICE
         ]
       });
 
@@ -164,6 +181,46 @@ class BLEWandManager {
           } catch (ledErr) {
             console.warn("[BLE] micro:bit LED service optional:", ledErr);
           }
+
+          // Discover micro:bit UART Service (for Telemetry & Battery updates)
+          try {
+            const mbUartService = await this.server.getPrimaryService(this.MB_UART_SERVICE);
+            if (mbUartService) {
+              this.mbUartTxChar = await mbUartService.getCharacteristic(this.MB_UART_TX_CHAR);
+              if (this.mbUartTxChar) {
+                await this.mbUartTxChar.startNotifications();
+                this.mbUartTxChar.addEventListener('characteristicvaluechanged', (e) => this.handleMicrobitUartData(e));
+                console.log("[BLE] Subscribed to micro:bit UART Telemetry!");
+              }
+            }
+          } catch (uartErr) {
+            console.warn("[BLE] micro:bit UART service optional:", uartErr);
+          }
+
+          // Discover micro:bit Event Service (for Battery & Status Telemetry)
+          try {
+            const mbEventService = await this.server.getPrimaryService(this.MB_EVENT_SERVICE);
+            if (mbEventService) {
+              try {
+                const clientReq = await mbEventService.getCharacteristic(this.MB_CLIENT_REQ_CHAR);
+                if (clientReq) {
+                  // Register client requirements to receive all micro:bit events (0x00, 0x00, 0x00, 0x00)
+                  await clientReq.writeValue(new Uint8Array([0x00, 0x00, 0x00, 0x00]));
+                }
+              } catch (reqErr) {
+                console.warn("[BLE] micro:bit client requirement write:", reqErr);
+              }
+
+              const eventChar = await mbEventService.getCharacteristic(this.MB_EVENT_CHAR);
+              if (eventChar) {
+                await eventChar.startNotifications();
+                eventChar.addEventListener('characteristicvaluechanged', (e) => this.handleMicrobitEvent(e));
+                console.log("[BLE] Subscribed to micro:bit Event Telemetry!");
+              }
+            }
+          } catch (eventErr) {
+            console.warn("[BLE] micro:bit Event service optional:", eventErr);
+          }
         }
       } catch (mbErr) {
         console.log("[BLE] micro:bit service not present, checking for Custom Nordic Wand...");
@@ -191,31 +248,55 @@ class BLEWandManager {
         }
       }
 
-      // 3. Discover Standard Battery Service
+      // 3. Discover Standard Bluetooth Battery Service (0x180F / battery_service)
       try {
-        const batService = await this.server.getPrimaryService(this.BATTERY_SERVICE_UUID);
-        this.batteryChar = await batService.getCharacteristic(this.BATTERY_CHAR_UUID);
-        const val = await this.batteryChar.readValue();
-        this.batteryLevel = val.getUint8(0);
-        this.emit('battery', this.batteryLevel);
+        let batService = null;
+        try {
+          batService = await this.server.getPrimaryService(this.BATTERY_SERVICE_UUID);
+        } catch (e) {
+          batService = await this.server.getPrimaryService('0000180f-0000-1000-8000-00805f9b34fb');
+        }
 
-        await this.batteryChar.startNotifications();
-        this.batteryChar.addEventListener('characteristicvaluechanged', (e) => {
-          this.batteryLevel = e.target.value.getUint8(0);
+        if (batService) {
+          try {
+            this.batteryChar = await batService.getCharacteristic(this.BATTERY_CHAR_UUID);
+          } catch (e) {
+            this.batteryChar = await batService.getCharacteristic('00002a19-0000-1000-8000-00805f9b34fb');
+          }
+
+          const val = await this.batteryChar.readValue();
+          this.batteryLevel = val.getUint8(0);
+          console.log(`[BLE] micro:bit Battery Level received: ${this.batteryLevel}%`);
           this.emit('battery', this.batteryLevel);
-        });
+
+          await this.batteryChar.startNotifications();
+          this.batteryChar.addEventListener('characteristicvaluechanged', (e) => {
+            this.batteryLevel = e.target.value.getUint8(0);
+            console.log(`[BLE] micro:bit Battery Level updated: ${this.batteryLevel}%`);
+            this.emit('battery', this.batteryLevel);
+          });
+        }
       } catch (err) {
-        this.batteryLevel = 95;
-        this.emit('battery', this.batteryLevel);
+        console.log("[BLE] Battery service (0x180F) not advertised by peripheral.");
+        if (isMicrobit && (this.batteryLevel === null || this.batteryLevel === undefined)) {
+          this.batteryLevel = 90;
+          this.emit('battery', this.batteryLevel);
+        }
       }
 
       this.isConnected = true;
+      if (isMicrobit && (this.batteryLevel === null || this.batteryLevel === undefined)) {
+        this.batteryLevel = 90;
+        this.emit('battery', this.batteryLevel);
+      }
       this.emit('connection', true, this.deviceName);
+      this.emit('signal', { level: 4, label: 'STRONG' });
       return true;
     } catch (err) {
       console.error("[BLE] Connection failed:", err);
       this.isConnected = false;
       this.emit('connection', false, null);
+      this.emit('signal', { level: 0, label: 'DISCONNECTED' });
       return false;
     }
   }
@@ -237,6 +318,7 @@ class BLEWandManager {
     this.mbLedChar = null;
     console.log("[BLE] Wand Device disconnected.");
     this.emit('connection', false, null);
+    this.emit('signal', { level: 0, label: 'DISCONNECTED' });
   }
 
   // =========================================================================
@@ -273,10 +355,33 @@ class BLEWandManager {
     const value = event.target.value;
     if (value.byteLength < 6) return;
 
+    const now = performance.now();
+    if (this.lastPacketTime > 0) {
+      const dt = now - this.lastPacketTime;
+      let lvl = 4;
+      let lbl = 'STRONG';
+      if (dt > 120) { lvl = 1; lbl = 'WEAK'; }
+      else if (dt > 60) { lvl = 2; lbl = 'FAIR'; }
+      else if (dt > 35) { lvl = 3; lbl = 'GOOD'; }
+
+      if (now - this.lastSignalEmit > 1200) {
+        this.signalLevel = lvl;
+        this.lastSignalEmit = now;
+        this.emit('signal', { level: lvl, label: lbl });
+      }
+    }
+    this.lastPacketTime = now;
+
     // micro:bit sends X, Y, Z int16 (in milli-g: 1000 = 1.0g)
-    const x = value.getInt16(0, true);
-    const y = value.getInt16(2, true);
-    const z = value.getInt16(4, true);
+    const rawX = value.getInt16(0, true);
+    const rawY = value.getInt16(2, true);
+    const rawZ = value.getInt16(4, true);
+
+    // Coordinate Axis Remapping for micro:bit wand orientation:
+    // Left (Apple) = -X, Right (Strawberry) = +X, Up (Orange) = +Y, Down (Pumpkin) = -Y
+    const x = rawY;
+    const y = rawX;
+    const z = rawZ;
 
     this.emit('accel', { x, y, z, gx: x / 1000.0, gy: y / 1000.0, gz: z / 1000.0 });
   }
@@ -294,6 +399,40 @@ class BLEWandManager {
     if (state === 1) {
       console.log("[BLE] micro:bit Button B -> Stir Action!");
       this.emit('gesture', 1, 95); // Stir
+    }
+  }
+
+  handleMicrobitEvent(event) {
+    const data = event.target.value;
+    if (!data || data.byteLength < 4) return;
+    const eventId = data.getUint16(0, true);
+    const eventValue = data.getUint16(2, true);
+    console.log(`[BLE] micro:bit Event: ID=${eventId}, Value=${eventValue}`);
+
+    // Event ID 9001 or 99 = Real-time Battery Percentage Telemetry
+    if (eventId === 9001 || eventId === 99) {
+      this.batteryLevel = Math.min(100, Math.max(0, eventValue));
+      console.log(`[BLE] micro:bit Battery Level updated via Event: ${this.batteryLevel}%`);
+      this.emit('battery', this.batteryLevel);
+    }
+  }
+
+  handleMicrobitUartData(event) {
+    const value = event.target.value;
+    if (!value) return;
+    const decoder = new TextDecoder('utf-8');
+    const text = decoder.decode(value).trim();
+    console.log(`[BLE] micro:bit UART received: "${text}"`);
+    if (text.includes("BAT:")) {
+      const match = text.match(/BAT:\s*(\d+)/i);
+      if (match && match[1]) {
+        const num = parseInt(match[1]);
+        if (!isNaN(num)) {
+          this.batteryLevel = Math.min(100, Math.max(0, num));
+          console.log(`[BLE] micro:bit Battery Level updated via UART: ${this.batteryLevel}%`);
+          this.emit('battery', this.batteryLevel);
+        }
+      }
     }
   }
 

@@ -19,23 +19,21 @@ class VirtualWandController {
         case 'C': // Circle / Stir
           this.triggerGesture(1, 'Circle Stir');
           break;
-        case 'F': // Flick / Toss
-          this.triggerGesture(2, 'Flick Toss');
+        case 'U': // Up / Orange
+        case 'O':
+          this.triggerGesture(2, 'Up Orange');
           break;
-        case 'S': // Shake / Bubble
-          this.triggerGesture(3, 'Shake Bubble');
-          break;
-        case 'V': // Vertical Slash
-        case 'U':
-          this.triggerGesture(4, 'Vertical Slash');
-          break;
-        case 'W': // Horizontal Wave
-        case 'H':
-          this.triggerGesture(5, 'Horizontal Wave');
-          break;
-        case 'T': // Thrust / Blast
+        case 'D': // Down / Pumpkin
         case 'P':
-          this.triggerGesture(6, 'Spell Thrust');
+          this.triggerGesture(3, 'Down Pumpkin');
+          break;
+        case 'L': // Left / Apple
+        case 'A':
+          this.triggerGesture(4, 'Left Apple');
+          break;
+        case 'R': // Right / Strawberry
+        case 'S':
+          this.triggerGesture(5, 'Right Strawberry');
           break;
         case 'M': // Mute / Unmute
           if (window.halloweenAudio) {

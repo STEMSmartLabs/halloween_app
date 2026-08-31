@@ -423,6 +423,120 @@ class HalloweenAudioEngine {
     osc.stop(now + 0.4);
   }
 
+  playDigitUnlockSound() {
+    if (!this.ctx || this.isMuted) return;
+    try {
+      const now = this.ctx.currentTime;
+
+      // 1. Mechanical tumbler click
+      const clickOsc = this.ctx.createOscillator();
+      const clickGain = this.ctx.createGain();
+      clickOsc.type = 'triangle';
+      clickOsc.frequency.setValueAtTime(300, now);
+      clickOsc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+      clickGain.gain.setValueAtTime(0.35, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      clickOsc.connect(clickGain);
+      clickGain.connect(this.sfxGain || this.ctx.destination);
+      clickOsc.start(now);
+      clickOsc.stop(now + 0.09);
+
+      // 2. Shimmering Golden Unlock Chimes
+      const chord = [739.99, 932.33, 1108.73, 1479.98]; // F#5, A#5, C#6, F#6
+      chord.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const t = now + 0.06 + idx * 0.07;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.28, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+        osc.connect(gain);
+        gain.connect(this.sfxGain || this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.48);
+      });
+    } catch (e) {
+      console.warn("Audio playDigitUnlockSound error:", e);
+    }
+  }
+
+  playGrandLockUnlockedFanfare() {
+    if (!this.ctx || this.isMuted) return;
+    try {
+      const now = this.ctx.currentTime;
+      // Majestic triumphant arpeggio
+      const notes = [
+        { f: 523.25, d: 0.15 }, // C5
+        { f: 659.25, d: 0.15 }, // E5
+        { f: 783.99, d: 0.15 }, // G5
+        { f: 1046.50, d: 0.22 }, // C6
+        { f: 1318.51, d: 0.22 }, // E6
+        { f: 1567.98, d: 0.55 }  // G6
+      ];
+      let t = now;
+      notes.forEach(n => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, t);
+        gain.gain.setValueAtTime(0.38, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
+        osc.connect(gain);
+        gain.connect(this.sfxGain || this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + n.d + 0.05);
+        t += n.d * 0.85;
+      });
+    } catch (e) {
+      console.warn("Audio playGrandLockUnlockedFanfare error:", e);
+    }
+  }
+
+  playRestartSound() {
+    if (!this.ctx || this.isMuted) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(350, now);
+      osc.frequency.exponentialRampToValueAtTime(700, now + 0.25);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.32);
+    } catch (e) {
+      console.warn("Audio playRestartSound error:", e);
+    }
+  }
+
+  playInvalidBust() {
+    if (!this.ctx || this.isMuted) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(55, now + 0.25);
+
+      gain.gain.setValueAtTime(this.masterVolume * 0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.26);
+    } catch (e) {
+      console.warn("Audio playInvalidBust error:", e);
+    }
+  }
+
   playGestureSound(gestureId) {
     switch (gestureId) {
       case 1: this.playCauldronStir(); break;

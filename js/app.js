@@ -36,10 +36,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Connect Bluetooth Wand Button
   const wandWidget = document.getElementById('wand-status-widget');
   const wandStatusText = document.getElementById('wand-status-text');
-  const wandBatteryFill = document.getElementById('battery-level-fill');
-  const wandBatteryText = document.getElementById('battery-percentage-text');
+  const signalGauge = document.getElementById('wand-signal-gauge');
+  const signalText = document.getElementById('signal-text');
+
+  function updateSignalUI(level, label) {
+    if (signalGauge) {
+      signalGauge.className = `wand-signal-gauge level-${level}`;
+    }
+    if (signalText) {
+      signalText.textContent = level > 0 ? `SIGNAL: ${label}` : 'SIGNAL: --';
+    }
+  }
 
   if (wandWidget && window.bleWand) {
+    // Initialize initial disconnected state
+    if (!window.bleWand.isConnected) {
+      wandWidget.classList.add('disconnected');
+      wandWidget.classList.remove('connected');
+      if (wandStatusText) wandStatusText.textContent = "Click to Connect";
+      updateSignalUI(0, 'DISCONNECTED');
+    }
+
     wandWidget.addEventListener('click', async (e) => {
       // Don't trigger pair if clicking the Train Movements button
       if (e.target.closest('#open-trainer-btn')) return;
@@ -50,7 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wandStatusText) wandStatusText.textContent = "Pairing...";
         const success = await window.bleWand.connect();
         if (!success && wandStatusText) {
-          wandStatusText.textContent = "Click to Pair";
+          wandStatusText.textContent = "Click to Connect";
+          updateSignalUI(0, 'DISCONNECTED');
         }
       }
     });
@@ -59,18 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (connected) {
         wandWidget.classList.add('connected');
         wandWidget.classList.remove('disconnected');
-        if (wandStatusText) wandStatusText.textContent = deviceName || 'Connected';
+        if (wandStatusText) wandStatusText.textContent = deviceName ? `${deviceName} (Active)` : 'Connected (Active)';
+        updateSignalUI(4, 'STRONG');
         if (window.candyGame) window.candyGame.showFloatingFeedback("🪄 Magic Wand Connected!");
       } else {
         wandWidget.classList.remove('connected');
         wandWidget.classList.add('disconnected');
-        if (wandStatusText) wandStatusText.textContent = 'Disconnected';
+        if (wandStatusText) wandStatusText.textContent = 'Click to Connect';
+        updateSignalUI(0, 'DISCONNECTED');
       }
     });
 
-    window.bleWand.on('battery', (level) => {
-      if (wandBatteryFill) wandBatteryFill.style.width = `${level}%`;
-      if (wandBatteryText) wandBatteryText.textContent = `${level}%`;
+    window.bleWand.on('signal', (sig) => {
+      if (sig) {
+        updateSignalUI(sig.level, sig.label);
+      }
     });
   }
 
@@ -147,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateSampleCounters() {
     if (!window.gestureTrainer) return;
-    const gestures = ['stir', 'toss', 'slash', 'shake', 'thrust'];
+    const gestures = ['stir', 'up', 'down', 'left', 'right'];
     gestures.forEach((g) => {
       const count = window.gestureTrainer.gestureSamples.filter(s => s.label === g).length;
       const el = document.getElementById(`samples-count-${g}`);
