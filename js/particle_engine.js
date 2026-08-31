@@ -74,10 +74,37 @@ class HalloweenParticleEngine {
     this.vortexAngularSpeed = 0;
     this.vortexAngle = 0;
     this.fireIntensity = 1.0;
+    this.cauldronHeight = 240;
 
+    this.isMobile = (typeof window !== 'undefined') && (window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024));
     this.isRunning = false;
     this.resizeCanvas();
-    window.addEventListener('resize', () => this.resizeCanvas());
+
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024);
+      this.resizeCanvas();
+    }, { passive: true });
+
+    let scrollThrottle = false;
+    window.addEventListener('scroll', () => {
+      if (!scrollThrottle) {
+        scrollThrottle = true;
+        requestAnimationFrame(() => {
+          this.updateCauldronCenter();
+          scrollThrottle = false;
+        });
+      }
+    }, { passive: true });
+  }
+
+  setShadow(color, blur) {
+    if (!this.isMobile) {
+      this.ctx.shadowColor = color;
+      this.ctx.shadowBlur = blur;
+    } else {
+      this.ctx.shadowColor = 'transparent';
+      this.ctx.shadowBlur = 0;
+    }
   }
 
   initFluidMesh() {
@@ -102,12 +129,15 @@ class HalloweenParticleEngine {
     const cauldronEl = document.querySelector('.cauldron-container');
     if (cauldronEl) {
       const rect = cauldronEl.getBoundingClientRect();
-      this.cauldronCenter = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height * 0.40
-      };
-      this.cauldronRadiusX = rect.width * 0.35;
-      this.cauldronRadiusY = rect.height * 0.088;
+      if (rect.width > 0 && rect.height > 0) {
+        this.cauldronHeight = rect.height;
+        this.cauldronCenter = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height * 0.40
+        };
+        this.cauldronRadiusX = rect.width * 0.35;
+        this.cauldronRadiusY = rect.height * 0.088;
+      }
     }
   }
 
@@ -318,7 +348,9 @@ class HalloweenParticleEngine {
   // 3. CAULDRON BUBBLES WITH 3D OSCILLATION & BURST SPLATTERS
   // =========================================================================
   spawnCauldronBubble(color = null) {
-    this.updateCauldronCenter();
+    const maxBubbles = this.isMobile ? 6 : 14;
+    if (this.bubbles.length >= maxBubbles) return;
+
     const angle = Math.random() * Math.PI * 2;
     const radFactor = Math.sqrt(Math.random()) * 0.85;
     const bx = this.cauldronCenter.x + Math.cos(angle) * (this.cauldronRadiusX * radFactor);
@@ -341,7 +373,7 @@ class HalloweenParticleEngine {
   }
 
   popBubble(b) {
-    const count = Math.floor(Math.random() * 5) + 5;
+    const count = this.isMobile ? 3 : (Math.floor(Math.random() * 5) + 5);
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 3.5 + 1.2;
@@ -366,7 +398,9 @@ class HalloweenParticleEngine {
   // 4. VOLUMETRIC GREEN STEAM & BASE FLAME SIMULATION
   // =========================================================================
   spawnSteam() {
-    this.updateCauldronCenter();
+    const maxSteam = this.isMobile ? 8 : 22;
+    if (this.steamPuffs.length >= maxSteam) return;
+
     const angle = Math.random() * Math.PI * 2;
     const rx = Math.random() * this.cauldronRadiusX * 0.8;
     const ry = Math.random() * this.cauldronRadiusY * 0.8;
@@ -382,7 +416,7 @@ class HalloweenParticleEngine {
       decay: 0.007
     });
 
-    if (Math.random() < 0.6) {
+    if (Math.random() < (this.isMobile ? 0.3 : 0.6)) {
       this.greenMistParticles.push({
         x: this.cauldronCenter.x + (Math.random() - 0.5) * (this.cauldronRadiusX * 1.6),
         y: this.cauldronCenter.y - Math.random() * 40,
@@ -397,15 +431,12 @@ class HalloweenParticleEngine {
   }
 
   spawnFlames() {
-    this.updateCauldronCenter();
-    const cauldronEl = document.querySelector('.cauldron-container');
-    let cauldronH = 240;
-    if (cauldronEl) {
-      cauldronH = cauldronEl.getBoundingClientRect().height;
-    }
-    // Anchor flame origins directly under cauldron feet
-    const baseY = this.cauldronCenter.y + (cauldronH * 0.38);
-    const count = Math.floor(Math.random() * 2 * this.fireIntensity) + 1;
+    const maxFlames = this.isMobile ? 10 : 25;
+    if (this.flames.length >= maxFlames) return;
+
+    // Anchor flame origins directly under cauldron feet using cached dimensions
+    const baseY = this.cauldronCenter.y + ((this.cauldronHeight || 240) * 0.38);
+    const count = this.isMobile ? 1 : (Math.floor(Math.random() * 2 * this.fireIntensity) + 1);
 
     for (let i = 0; i < count; i++) {
       const spreadX = (Math.random() - 0.5) * (this.cauldronRadiusX * 1.3);
@@ -421,16 +452,17 @@ class HalloweenParticleEngine {
       });
     }
 
-    if (Math.random() < 0.3 * this.fireIntensity) {
+    const maxEmbers = this.isMobile ? 6 : 20;
+    if (this.embers.length < maxEmbers && Math.random() < (this.isMobile ? 0.15 : 0.3) * this.fireIntensity) {
       this.embers.push({
         x: this.cauldronCenter.x + (Math.random() - 0.5) * (this.cauldronRadiusX * 1.2),
         y: baseY,
         vx: (Math.random() - 0.5) * 2.0,
         vy: -Math.random() * 4.0 - 2.5,
         gravity: 0.05,
-        radius: Math.random() * 2.2 + 1.0,
+        radius: Math.random() * 2.5 + 1.2,
         alpha: 1.0,
-        decay: 0.02
+        decay: Math.random() * 0.02 + 0.015
       });
     }
   }
@@ -553,8 +585,6 @@ class HalloweenParticleEngine {
   // 6. ARCANE SPELL CIRCLE & VISCERAL SCREEN SHAKE
   // =========================================================================
   triggerSpellEffect(gestureId) {
-    this.updateCauldronCenter();
-
     switch (gestureId) {
       case 1: // Stir / Circle
         this.vortexAngularSpeed = 0.25;
@@ -609,7 +639,6 @@ class HalloweenParticleEngine {
   }
 
   triggerInvalidBust(fromEl = null) {
-    this.updateCauldronCenter();
     let x = this.cauldronCenter.x;
     let y = this.cauldronCenter.y - 30;
 
@@ -649,9 +678,9 @@ class HalloweenParticleEngine {
   }
 
   spawnCelebrationBurst() {
-    this.updateCauldronCenter();
     const candies = ['🍫', '🍬', '🍭', '🍫', '✨', '🎃', '🍎', '🍇', '🌽'];
-    for (let i = 0; i < 50; i++) {
+    const count = this.isMobile ? 22 : 50;
+    for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 14 + 6;
       this.confetti.push({
@@ -678,7 +707,7 @@ class HalloweenParticleEngine {
     if (!this.isRunning) return;
 
     this.frameCount = (this.frameCount || 0) + 1;
-    if (this.frameCount % 20 === 0 || this.frameCount < 60) {
+    if (this.frameCount % 60 === 0 || this.frameCount < 5) {
       this.updateCauldronCenter();
     }
 
@@ -788,8 +817,7 @@ class HalloweenParticleEngine {
       }
 
       this.ctx.fillStyle = `rgba(254, 215, 170, ${e.alpha})`;
-      this.ctx.shadowColor = '#ea580c';
-      this.ctx.shadowBlur = 6;
+      this.setShadow('#ea580c', 6);
       this.ctx.beginPath();
       this.ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
       this.ctx.fill();
@@ -830,8 +858,7 @@ class HalloweenParticleEngine {
     fluidGrad.addColorStop(1, '#02160a');
 
     this.ctx.fillStyle = fluidGrad;
-    this.ctx.shadowColor = '#4ade80';
-    this.ctx.shadowBlur = 28;
+    this.setShadow('#4ade80', 28);
     this.ctx.fill();
 
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
@@ -889,8 +916,7 @@ class HalloweenParticleEngine {
       }
 
       this.ctx.fillStyle = d.color;
-      this.ctx.shadowColor = d.color;
-      this.ctx.shadowBlur = 8;
+      this.setShadow(d.color, 8);
       this.ctx.globalAlpha = Math.max(0, d.alpha);
       this.ctx.beginPath();
       this.ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
@@ -942,8 +968,7 @@ class HalloweenParticleEngine {
       this.ctx.save();
       this.ctx.globalAlpha = Math.max(0, p.alpha);
       this.ctx.fillStyle = p.color;
-      this.ctx.shadowColor = p.color;
-      this.ctx.shadowBlur = 8;
+      this.setShadow(p.color, 8);
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       this.ctx.fill();
@@ -972,8 +997,7 @@ class HalloweenParticleEngine {
       this.ctx.translate(posX, posY);
       this.ctx.rotate(item.rot + Math.sin(item.phase * 0.7) * 0.08);
 
-      this.ctx.shadowColor = item.glow;
-      this.ctx.shadowBlur = Math.round(15 * scale);
+      this.setShadow(item.glow, Math.round(15 * scale));
 
       this.ctx.font = `${Math.round(item.size * scale)}px sans-serif`;
       this.ctx.textAlign = 'center';
@@ -1008,8 +1032,7 @@ class HalloweenParticleEngine {
     // Outer Mystic Rune Target Ring (Flat Horizontal Rim Ellipse)
     this.ctx.save();
     this.ctx.strokeStyle = '#facc15';
-    this.ctx.shadowColor = '#facc15';
-    this.ctx.shadowBlur = 18;
+    this.setShadow('#facc15', 18);
     this.ctx.lineWidth = 2.5;
     this.ctx.setLineDash([10, 8]);
     this.ctx.lineDashOffset = -this.metronomePhase * 25;
@@ -1032,8 +1055,7 @@ class HalloweenParticleEngine {
       this.ctx.font = '24px sans-serif';
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.shadowColor = '#4ade80';
-      this.ctx.shadowBlur = 15;
+      this.setShadow('#4ade80', 15);
       this.ctx.fillText('🔄', 0, 0);
       this.ctx.restore();
     } else if (st.type === 'slash') {
@@ -1042,16 +1064,14 @@ class HalloweenParticleEngine {
       this.ctx.save();
       this.ctx.font = '28px sans-serif';
       this.ctx.textAlign = 'center';
-      this.ctx.shadowColor = '#ff7518';
-      this.ctx.shadowBlur = 20;
+      this.setShadow('#ff7518', 20);
       this.ctx.fillText('⬇️🔥', cx, arrowY);
       this.ctx.restore();
     } else if (st.type === 'thrust') {
       // Crosshair spell target
       this.ctx.save();
       this.ctx.strokeStyle = '#38bdf8';
-      this.ctx.shadowColor = '#38bdf8';
-      this.ctx.shadowBlur = 22;
+      this.setShadow('#38bdf8', 22);
       this.ctx.lineWidth = 3;
       this.ctx.beginPath();
       this.ctx.arc(cx, cy - 20, 32 * pulseScale, 0, Math.PI * 2);
@@ -1079,8 +1099,7 @@ class HalloweenParticleEngine {
       }
 
       this.ctx.strokeStyle = sw.color;
-      this.ctx.shadowColor = sw.color;
-      this.ctx.shadowBlur = 15;
+      this.setShadow(sw.color, 15);
       this.ctx.globalAlpha = Math.max(0, sw.alpha);
       this.ctx.lineWidth = 3;
       this.ctx.beginPath();
@@ -1101,8 +1120,7 @@ class HalloweenParticleEngine {
       this.ctx.save();
       this.ctx.globalAlpha = Math.max(0, r.alpha);
       this.ctx.strokeStyle = r.color;
-      this.ctx.shadowColor = r.color;
-      this.ctx.shadowBlur = 18;
+      this.setShadow(r.color, 18);
       this.ctx.lineWidth = 2.5;
 
       this.ctx.beginPath();
@@ -1159,22 +1177,24 @@ class HalloweenParticleEngine {
       this.ctx.font = '36px sans-serif';
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.shadowColor = item.color;
-      this.ctx.shadowBlur = 16;
+      this.setShadow(item.color, 16);
       this.ctx.fillText(item.emoji, 0, 0);
       this.ctx.restore();
 
-      this.sparks.push({
-        x: item.x,
-        y: item.y,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
-        gravity: 0.05,
-        size: 3.5,
-        color: item.color,
-        alpha: 0.8,
-        decay: 0.04
-      });
+      const maxSparks = this.isMobile ? 12 : 35;
+      if (this.sparks.length < maxSparks) {
+        this.sparks.push({
+          x: item.x,
+          y: item.y,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          gravity: 0.05,
+          size: 3.5,
+          color: item.color,
+          alpha: 0.8,
+          decay: 0.04
+        });
+      }
 
       // Mid-Air Burst for Invalid/Wrong Ingredient
       if (!item.isValid && item.progress >= 0.48) {
@@ -1238,15 +1258,13 @@ class HalloweenParticleEngine {
 
       if (pass === 0) {
         this.ctx.strokeStyle = outerColor;
-        this.ctx.shadowColor = outerGlow;
-        this.ctx.shadowBlur = 28;
+        this.setShadow(outerGlow, 28);
         this.ctx.lineWidth = ribbonWidth;
         this.ctx.globalAlpha = 0.6;
         this.ctx.stroke();
       } else {
         this.ctx.strokeStyle = '#ffffff';
-        this.ctx.shadowColor = '#ffffff';
-        this.ctx.shadowBlur = 14;
+        this.setShadow('#ffffff', 14);
         this.ctx.lineWidth = 3.5;
         this.ctx.globalAlpha = 0.95;
         this.ctx.stroke();
@@ -1268,8 +1286,7 @@ class HalloweenParticleEngine {
       this.ctx.save();
       this.ctx.globalAlpha = Math.max(0, sp.alpha);
       this.ctx.fillStyle = sp.color;
-      this.ctx.shadowColor = sp.color;
-      this.ctx.shadowBlur = 12;
+      this.setShadow(sp.color, 12);
       this.ctx.beginPath();
       this.ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
       this.ctx.fill();
@@ -1303,8 +1320,7 @@ class HalloweenParticleEngine {
       this.ctx.font = `${c.size}px sans-serif`;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.shadowColor = c.color;
-      this.ctx.shadowBlur = 10;
+      this.setShadow(c.color, 10);
       this.ctx.fillText(c.emoji, 0, 0);
       this.ctx.restore();
     }
