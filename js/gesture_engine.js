@@ -148,7 +148,7 @@ class GestureEngine {
 
     // 1. Move Wand Cursor (Uses raw gravity tilt smoothly)
     const targetScreenX = (window.innerWidth / 2) + (gX / 0.8) * (window.innerWidth * 0.42);
-    const targetScreenY = (window.innerHeight / 2) + (gY / 0.8) * (window.innerHeight * 0.42);
+    const targetScreenY = (window.innerHeight / 2) - (gY / 0.8) * (window.innerHeight * 0.42);
 
     const dist = Math.hypot(targetScreenX - this.smoothedX, targetScreenY - this.smoothedY);
 

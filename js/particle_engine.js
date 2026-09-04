@@ -598,28 +598,28 @@ class HalloweenParticleEngine {
         this.fireIntensity = 2.5;
         this.spawnCauldronBubble('#f97316');
         this.screenShakeTrauma = 0.25;
-        if (window.halloweenAudio) window.halloweenAudio.playIngredientToss();
+        if (window.halloweenAudio) window.halloweenAudio.playOrangeChime();
         break;
 
       case 3: // Down: 🎃 Pumpkin
         this.spawnCauldronBubble('#ff7518');
         this.spawnCauldronBubble('#facc15');
         this.screenShakeTrauma = 0.35;
-        if (window.halloweenAudio) window.halloweenAudio.playFlameIgnite();
+        if (window.halloweenAudio) window.halloweenAudio.playPumpkinChime();
         break;
 
       case 4: // Left: 🍎 Apple
         this.spawnCauldronBubble('#ef4444');
         this.spawnCauldronBubble('#22c55e');
         this.screenShakeTrauma = 0.25;
-        if (window.halloweenAudio) window.halloweenAudio.playMistSweep();
+        if (window.halloweenAudio) window.halloweenAudio.playAppleChime();
         break;
 
       case 5: // Right: 🍓 Strawberry
         this.spawnCauldronBubble('#f43f5e');
         this.spawnCauldronBubble('#ec4899');
         this.screenShakeTrauma = 0.25;
-        if (window.halloweenAudio) window.halloweenAudio.playSparkleChime();
+        if (window.halloweenAudio) window.halloweenAudio.playStrawberryChime();
         break;
 
       case 6: // Spell Thrust / Blast

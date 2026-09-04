@@ -1,6 +1,6 @@
 /**
  * @file candy_brew_game.js
- * @brief Master Recipe State Manager with 3-Level Goody Box Unlock (5-3-8) & Restart Flow
+ * @brief Master Recipe State Manager with 3-Level Goody Box Unlock (3-0-4) & Restart Flow
  */
 
 class CandyBrewGame {
@@ -9,8 +9,8 @@ class CandyBrewGame {
     this.currentStepIndex = 0;
     this.isGameCompleted = false;
 
-    // Surprise Goody Box 3-Digit Combination Key (538)
-    this.unlockKey = ['5', '3', '8'];
+    // Surprise Goody Box 3-Digit Combination Key (304)
+    this.unlockKey = ['3', '0', '4'];
     this.revealedDigits = [false, false, false];
 
     // Wand Level Progression (1: Apprentice, 2: Candy Mage, 3: Master Choco-Sorcerer)
@@ -32,7 +32,7 @@ class CandyBrewGame {
         tag: 'Level 1: Apprentice Brew',
         liquidColor: '#22c55e', 
         glowColor: 'rgba(34, 197, 94, 0.95)',
-        revealDigit: '5',
+        revealDigit: '3',
         steps: [
           { type: 'ingredient', item: 'pumpkin', count: 2, initialCount: 2, name: 'Mini Pumpkins', icon: '🎃' },
           { type: 'ingredient', item: 'apple', count: 3, initialCount: 3, name: 'Apples', icon: '🍎' },
@@ -48,7 +48,7 @@ class CandyBrewGame {
         tag: 'Level 2: Candy Mage Potion',
         liquidColor: '#a855f7', 
         glowColor: 'rgba(168, 85, 247, 0.95)',
-        revealDigit: '3',
+        revealDigit: '0',
         steps: [
           { type: 'ingredient', item: 'strawberry', count: 3, initialCount: 3, name: 'Strawberries', icon: '🍓' },
           { type: 'ingredient', item: 'orange', count: 3, initialCount: 3, name: 'Oranges', icon: '🍊' },
@@ -65,7 +65,7 @@ class CandyBrewGame {
         tag: 'Level 3: Grand Master Elixir',
         liquidColor: '#38bdf8',
         glowColor: 'rgba(56, 189, 248, 0.95)',
-        revealDigit: '8',
+        revealDigit: '4',
         steps: [
           { type: 'ingredient', item: 'apple', count: 3, initialCount: 3, name: 'Apples', icon: '🍎' },
           { type: 'ingredient', item: 'strawberry', count: 3, initialCount: 3, name: 'Strawberries', icon: '🍓' },
@@ -405,7 +405,7 @@ class CandyBrewGame {
     this.updateCandyDisplay();
     this.updateGoodyBoxUI();
 
-    this.showFloatingFeedback(`🎉 LEVEL ${lvlIdx + 1} COMPLETE! Lock Digit Revealed: [ ${revealedDigit} ]`);
+    this.showFloatingFeedback(`🎉 LEVEL ${lvlIdx + 1} UNLOCKED! 🔓 Lock Digit Revealed: [ ${revealedDigit} ]`);
 
     setTimeout(() => {
       if (this.currentLevelIndex < 2) {
@@ -443,7 +443,7 @@ class CandyBrewGame {
   }
 
   restartGame() {
-    console.log("[Game] Restarting Halloween Magic Wand Game!");
+    console.log("[Game] Restarting Halloween Candy Brew...");
     this.currentLevelIndex = 0;
     this.currentStepIndex = 0;
     this.isGameCompleted = false;
@@ -452,11 +452,14 @@ class CandyBrewGame {
     this.comboCount = 0;
     this.addedIngredients = [];
 
-    // Reset recipe step counts to initial values
-    this.recipes.forEach(r => {
-      r.steps.forEach(s => {
-        if (s.type === 'ingredient') s.count = s.initialCount;
-        if (s.type === 'gesture') s.needed = s.initialNeeded;
+    // Reset recipe step counts
+    this.recipes.forEach(rec => {
+      rec.steps.forEach(st => {
+        if (st.type === 'ingredient') {
+          st.count = st.initialCount;
+        } else if (st.type === 'gesture') {
+          st.needed = st.initialNeeded;
+        }
       });
     });
 
@@ -468,68 +471,61 @@ class CandyBrewGame {
     if (window.halloweenAudio) {
       window.halloweenAudio.playRestartSound();
     }
+    if (window.particleEngine) {
+      window.particleEngine.setWandLevel(1);
+      window.particleEngine.setSpellTarget(null);
+    }
 
     this.renderCurrentRecipe();
     this.updateCandyDisplay();
     this.updateGoodyBoxUI();
-    this.updateWandLevelUI();
-
-    this.showFloatingFeedback("✨ Game Restarted! Level 1 Ready!");
+    this.showFloatingFeedback("🔄 Game Reset! Brew Level 1 to unlock Digit 1!");
   }
 
   // =========================================================================
   // WAND LEVEL PROGRESSION
   // =========================================================================
   checkWandLevelUp() {
-    let newLevel = 1;
     const revealedCount = this.revealedDigits.filter(Boolean).length;
-    if (revealedCount >= 3) {
-      newLevel = 3; // Master Choco-Sorcerer
-    } else if (revealedCount >= 2) {
-      newLevel = 2; // Candy Mage
-    }
+    let newLevel = 1;
+    if (revealedCount === 1) newLevel = 2;
+    else if (revealedCount >= 2) newLevel = 3;
 
-    if (newLevel > this.wandLevel) {
+    if (newLevel !== this.wandLevel) {
       this.wandLevel = newLevel;
       if (window.particleEngine) {
         window.particleEngine.setWandLevel(this.wandLevel);
       }
-      this.updateWandLevelUI();
-
-      const levelNames = {
-        2: '🌟 LEVEL 2: CANDY MAGE (Fiery Ribbon Unlocked!)',
-        3: '👑 LEVEL 3: MASTER CHOCO-SORCERER (Rainbow Ribbon Unlocked!)'
-      };
-      this.showFloatingFeedback(`🎉 WAND EVOLVED! ${levelNames[this.wandLevel]}`);
-    }
-  }
-
-  updateWandLevelUI() {
-    const levelBadgeEl = document.getElementById('wand-level-badge');
-    if (levelBadgeEl) {
-      const titles = {
-        1: '⭐ Lvl 1: Apprentice',
-        2: '🌟 Lvl 2: Candy Mage',
-        3: '👑 Lvl 3: Choco-Sorcerer'
-      };
-      levelBadgeEl.textContent = titles[this.wandLevel] || '⭐ Lvl 1: Apprentice';
-      levelBadgeEl.className = `wand-level-tag lvl-${this.wandLevel}`;
-    }
-  }
-
-  showFloatingFeedback(text) {
-    const feedbackEl = document.getElementById('spell-feedback');
-    if (feedbackEl) {
-      if (this.feedbackTimer) clearTimeout(this.feedbackTimer);
-      feedbackEl.textContent = text;
-      feedbackEl.classList.remove('show', 'bust');
-      if (text.includes('BUST') || text.includes('❌')) {
-        feedbackEl.classList.add('bust');
+      if (window.halloweenAudio) {
+        window.halloweenAudio.playWandLevelUpFanfare();
       }
-      void feedbackEl.offsetWidth; // Reflow to restart animation
+      const wandNames = {
+        1: 'Novice Wand',
+        2: '🔥 Mystic Flame Wand',
+        3: '🌈 Prismatic Rainbow Wand'
+      };
+      this.showFloatingFeedback(`🌟 WAND UPGRADED! You are now wielding the ${wandNames[this.wandLevel]}!`);
+    }
+  }
+
+  showFloatingFeedback(text, isBust = false) {
+    let feedbackEl = document.getElementById('floating-spell-feedback');
+    if (!feedbackEl) {
+      feedbackEl = document.createElement('div');
+      feedbackEl.id = 'floating-spell-feedback';
+      feedbackEl.className = 'floating-spell-feedback';
+      document.body.appendChild(feedbackEl);
+    }
+
+    feedbackEl.textContent = text;
+    feedbackEl.classList.remove('show', 'bust');
+    if (isBust) feedbackEl.classList.add('bust');
+
+    clearTimeout(this.feedbackTimer);
+    requestAnimationFrame(() => {
       feedbackEl.classList.add('show');
       this.feedbackTimer = setTimeout(() => feedbackEl.classList.remove('show', 'bust'), 2600);
-    }
+    });
   }
 
   updateCandyDisplay() {
@@ -547,9 +543,12 @@ class CandyBrewGame {
       const fillEl = document.getElementById(`level-seg-fill-${i}`);
       const pctEl = document.getElementById(`level-seg-pct-${i}`);
       const pct = pcts[i - 1];
+      const isLvlUnlocked = this.revealedDigits[i - 1];
 
       if (fillEl) fillEl.style.width = `${pct}%`;
-      if (pctEl) pctEl.textContent = `${pct}%`;
+      if (pctEl) {
+        pctEl.textContent = isLvlUnlocked ? `100% 🔓` : `${pct}%`;
+      }
     }
 
     const currentLvlNum = Math.min(3, this.currentLevelIndex + 1);
@@ -557,7 +556,7 @@ class CandyBrewGame {
 
     if (activeBadgeEl) {
       if (this.isGameCompleted) {
-        activeBadgeEl.textContent = `👑 All 3 Levels Complete!`;
+        activeBadgeEl.textContent = `👑 All 3 Levels Unlocked 🔓!`;
       } else {
         activeBadgeEl.textContent = `⭐ Level ${currentLvlNum} of 3`;
       }
@@ -565,7 +564,7 @@ class CandyBrewGame {
 
     if (overallPctEl) {
       if (this.isGameCompleted) {
-        overallPctEl.textContent = `🎉 Goody Box Code: 538`;
+        overallPctEl.textContent = `🎉 Goody Box Code: 304 🔓`;
       } else {
         overallPctEl.textContent = `Level ${currentLvlNum}: ${curPct}% Complete`;
       }
@@ -573,7 +572,7 @@ class CandyBrewGame {
 
     if (fractionEl) {
       const finishedCount = this.revealedDigits.filter(Boolean).length;
-      fractionEl.textContent = `${finishedCount} / 3 Levels Finished`;
+      fractionEl.textContent = `${finishedCount} / 3 Levels Finished 🔓`;
     }
   }
 
@@ -588,6 +587,14 @@ class CandyBrewGame {
       const digitVal = this.unlockKey[i - 1];
 
       if (digitBox) {
+        const slotEl = digitBox.closest('.lock-tumbler-slot');
+        if (slotEl) {
+          const tagEl = slotEl.querySelector('.lock-level-tag');
+          if (tagEl) {
+            tagEl.textContent = isRevealed ? `LEVEL ${i} 🔓` : `LEVEL ${i}`;
+          }
+        }
+
         if (isRevealed) {
           digitBox.className = 'lock-digit-box unlocked';
           digitBox.innerHTML = `<span class="digit-icon">🔓</span><span class="digit-val">${digitVal}</span>`;
@@ -603,7 +610,7 @@ class CandyBrewGame {
     if (statusBadgeEl) {
       if (this.isGameCompleted || revealedCount === 3) {
         statusBadgeEl.className = 'goody-lock-status-badge unlocked';
-        statusBadgeEl.textContent = '🔓 UNLOCKED: 538';
+        statusBadgeEl.textContent = '🔓 UNLOCKED: 304';
       } else {
         statusBadgeEl.className = 'goody-lock-status-badge';
         statusBadgeEl.textContent = `🔒 LOCKED (${revealedCount}/3 Levels)`;
@@ -612,13 +619,13 @@ class CandyBrewGame {
 
     if (subtextEl) {
       if (this.isGameCompleted) {
-        subtextEl.textContent = '🎉 SECRET CODE REVEALED: 5-3-8! Use code to open Goody Box!';
+        subtextEl.textContent = '🎉 SECRET CODE REVEALED: 3-0-4 🔓! Use code to open Goody Box!';
       } else if (revealedCount === 0) {
         subtextEl.textContent = 'Complete Level 1 to reveal the 1st lock digit!';
       } else if (revealedCount === 1) {
-        subtextEl.textContent = '✨ Level 1 Done! 1st Digit is 5. Complete Level 2 for Digit 2!';
+        subtextEl.textContent = '✨ Level 1 Done! 1st Digit is 3 🔓. Complete Level 2 for Digit 2!';
       } else if (revealedCount === 2) {
-        subtextEl.textContent = '✨ Level 2 Done! 2nd Digit is 3. Complete Level 3 for Final Digit!';
+        subtextEl.textContent = '✨ Level 2 Done! 2nd Digit is 0 🔓. Complete Level 3 for Final Digit!';
       }
     }
 

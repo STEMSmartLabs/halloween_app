@@ -283,21 +283,34 @@ class HalloweenAudioEngine {
   playIngredientToss() {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
+
+    // 1. Crystal Water Plop
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(140, now + 0.18);
+    osc.frequency.setValueAtTime(580, now);
+    osc.frequency.exponentialRampToValueAtTime(1180, now + 0.08);
 
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
     osc.connect(gain);
     gain.connect(this.sfxGain);
-
     osc.start(now);
-    osc.stop(now + 0.25);
+    osc.stop(now + 0.18);
+
+    // 2. Sparkling High Resonance
+    const osc2 = this.ctx.createOscillator();
+    const gain2 = this.ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(1318.51, now + 0.04); // E6
+    gain2.gain.setValueAtTime(0.15, now + 0.04);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+    osc2.connect(gain2);
+    gain2.connect(this.sfxGain);
+    osc2.start(now + 0.04);
+    osc2.stop(now + 0.24);
   }
 
   playCauldronStir() {
@@ -329,98 +342,112 @@ class HalloweenAudioEngine {
     }
   }
 
-  playFlameIgnite() {
+  // =========================================================================
+  // 4 DISTINCT MELODIC INGREDIENT CHIMES
+  // =========================================================================
+
+  // 🍊 Orange (Up): Uplifting sunny citrus harp & vibraphone arpeggio
+  playOrangeChime() {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(90, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
-
-    gain.gain.setValueAtTime(0.45, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-    osc.connect(gain);
-    gain.connect(this.sfxGain);
-    osc.start(now);
-    osc.stop(now + 0.45);
-  }
-
-  playSpellCast() {
-    if (!this.ctx || this.isMuted) return;
-    const now = this.ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99, 1046.50];
+    const notes = [659.25, 830.61, 987.77, 1318.51]; // E5, G#5, B5, E6
     notes.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      const noteTime = now + idx * 0.05;
+      const t = now + idx * 0.04;
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, noteTime);
+      osc.frequency.setValueAtTime(freq, t);
 
-      gain.gain.setValueAtTime(0.25, noteTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.4);
+      gain.gain.setValueAtTime(0.24, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
-      osc.start(noteTime);
-      osc.stop(noteTime + 0.45);
+      osc.start(t);
+      osc.stop(t + 0.3);
     });
   }
 
-  playRecipeCompleteFanfare() {
+  // 🎃 Pumpkin (Down): Warm, rich, festive Autumn Marimba & Glow Chime
+  playPumpkinChime() {
     if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
-    const melody = [
-      { f: 440.00, d: 0.12 },
-      { f: 523.25, d: 0.12 },
-      { f: 659.25, d: 0.15 },
-      { f: 880.00, d: 0.35 }
-    ];
-
-    let t = now;
-    melody.forEach((note) => {
+    const notes = [587.33, 880.00, 1174.66]; // D5, A5, D6
+    notes.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
+      const t = now + idx * 0.04;
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(note.f, t);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
 
-      gain.gain.setValueAtTime(0.35, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + note.d);
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
-
       osc.start(t);
-      osc.stop(t + note.d + 0.05);
-      t += note.d * 0.9;
+      osc.stop(t + 0.28);
+    });
+  }
+
+  playFlameIgnite() {
+    this.playPumpkinChime();
+  }
+
+  // 🍎 Apple (Left): Crisp, juicy crystal bell & sparkle chime
+  playAppleChime() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const notes = [783.99, 1046.50, 1318.51]; // G5, C6, E6
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + idx * 0.04;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0.26, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.26);
     });
   }
 
   playMistSweep() {
-    this.playWandMotionSound(25);
+    this.playAppleChime();
+  }
+
+  // 🍓 Strawberry (Right): Shimmering sweet ruby fairy celestial glockenspiel chime
+  playStrawberryChime() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const notes = [739.99, 932.33, 1108.73, 1479.98]; // F#5, A#5, C#6, F#6
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + idx * 0.038;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.35);
+    });
   }
 
   playSparkleChime() {
-    if (!this.ctx || this.isMuted) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1174.66, now);
-    osc.frequency.exponentialRampToValueAtTime(1760.00, now + 0.2);
-
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-    osc.connect(gain);
-    gain.connect(this.sfxGain);
-    osc.start(now);
-    osc.stop(now + 0.4);
+    this.playStrawberryChime();
   }
 
   playDigitUnlockSound() {
@@ -513,6 +540,7 @@ class HalloweenAudioEngine {
     }
   }
 
+  // Soft magical fizzle poof on invalid action
   playInvalidBust() {
     if (!this.ctx || this.isMuted) return;
     try {
@@ -520,18 +548,18 @@ class HalloweenAudioEngine {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(55, now + 0.25);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(210, now + 0.18);
 
-      gain.gain.setValueAtTime(this.masterVolume * 0.4, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      gain.gain.setValueAtTime(this.masterVolume * 0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
 
       osc.connect(gain);
       gain.connect(this.sfxGain || this.ctx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.26);
+      osc.stop(now + 0.22);
     } catch (e) {
       console.warn("Audio playInvalidBust error:", e);
     }
@@ -540,12 +568,12 @@ class HalloweenAudioEngine {
   playGestureSound(gestureId) {
     switch (gestureId) {
       case 1: this.playCauldronStir(); break;
-      case 2: this.playIngredientToss(); break;
-      case 3: this.playBubbleFroth(); break;
-      case 4: this.playFlameIgnite(); break;
-      case 5: this.playMistSweep(); break;
+      case 2: this.playOrangeChime(); break; // 🍊 Orange (Up)
+      case 3: this.playPumpkinChime(); break; // 🎃 Pumpkin (Down)
+      case 4: this.playAppleChime(); break; // 🍎 Apple (Left)
+      case 5: this.playStrawberryChime(); break; // 🍓 Strawberry (Right)
       case 6: this.playSpellCast(); break;
-      default: this.playSparkleChime(); break;
+      default: this.playStrawberryChime(); break;
     }
   }
 }
