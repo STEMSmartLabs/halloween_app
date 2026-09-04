@@ -3,7 +3,7 @@
  * @brief Service Worker for Witches' Halloween Candy Brew PWA (100% Offline Support)
  */
 
-const CACHE_NAME = 'candy-brew-v2.32.0';
+const CACHE_NAME = 'candy-brew-v2.35.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

@@ -106,9 +106,12 @@ class BLEWandManager {
         filters: [
           { namePrefix: 'BBC micro:bit' },
           { namePrefix: 'micro:bit' },
+          { namePrefix: 'BBC' },
+          { namePrefix: 'MagicWand' },
           { name: 'HalloweenWand' },
           { name: 'MagicWand-HLW' },
-          { namePrefix: 'MagicWand' }
+          { services: [this.MB_ACCEL_SERVICE] },
+          { services: [this.SERVICE_UUID] }
         ],
         optionalServices: [
           this.SERVICE_UUID,

@@ -479,6 +479,7 @@ class CandyBrewGame {
     this.renderCurrentRecipe();
     this.updateCandyDisplay();
     this.updateGoodyBoxUI();
+    this.updateWandLevelUI();
     this.showFloatingFeedback("🔄 Game Reset! Brew Level 1 to unlock Digit 1!");
   }
 
@@ -493,6 +494,7 @@ class CandyBrewGame {
 
     if (newLevel !== this.wandLevel) {
       this.wandLevel = newLevel;
+      this.updateWandLevelUI();
       if (window.particleEngine) {
         window.particleEngine.setWandLevel(this.wandLevel);
       }
@@ -506,6 +508,20 @@ class CandyBrewGame {
       };
       this.showFloatingFeedback(`🌟 WAND UPGRADED! You are now wielding the ${wandNames[this.wandLevel]}!`);
     }
+  }
+
+  updateWandLevelUI() {
+    const badge = document.getElementById('wand-level-badge');
+    if (!badge) return;
+
+    const levelLabels = {
+      1: '⭐ Lvl 1: Apprentice',
+      2: '🔥 Lvl 2: Candy Mage',
+      3: '🌈 Lvl 3: Master Choco-Sorcerer'
+    };
+
+    badge.className = `wand-level-tag lvl-${this.wandLevel}`;
+    badge.textContent = levelLabels[this.wandLevel] || `⭐ Lvl ${this.wandLevel}`;
   }
 
   showFloatingFeedback(text, isBust = false) {
